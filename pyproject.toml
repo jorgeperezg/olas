@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "olas"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["jorge.perez <j.perez@metocean.co.nz>"]
 
@@ -9,6 +9,10 @@ python = "^3.7"
 xarray = "^0.17.0"
 Cartopy = "^0.18.0"
 dask = "^2021.3.0"
+geos = "^0.2.3"
+proj = "^0.2.0"
+Cython = "^0.29.22"
+matplotlib = "^3.3.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

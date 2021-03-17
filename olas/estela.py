@@ -64,7 +64,7 @@ def geographic_mask(lat0, lon0, dists, bearings, mask=None):  # TODO mask is not
     return vland
 
 
-def calc_estelas(datafiles, spec_info, lat0, lon0, groupers=None):
+def estela_calc(datafiles, spec_info, lat0, lon0, groupers=None):
     """ Calculate ESTELA dataset for a target point.
 
     Args:
@@ -163,7 +163,7 @@ def calc_estelas(datafiles, spec_info, lat0, lon0, groupers=None):
     return estelas
 
 
-def plot_estelas(ds, proj=None, cmap="plasma", figsize=[25,10]):
+def estela_plot(ds, proj=None, cmap="plasma", figsize=[25,10]):
     """ Plot ESTELA maps for one or several time periods
 
     Args:
@@ -249,11 +249,11 @@ if __name__ == "__main__":
     lon0 = -131 # 174.5  #, -172.07
     groupers = ["ALL", "time.season", "time.month"]
 
-    estelas = calc_estelas(datafiles, spec_info, lat0, lon0, groupers=groupers)
+    estelas = estela_calc(datafiles, spec_info, lat0, lon0, groupers=groupers)
     proj = None  # ccrs.Orthographic(lon0, lat0) # None
-    f1 = plot_estelas(estelas.sel(time="ALL"), proj)
-    f4 = plot_estelas(estelas.sel(time=["DJF", "MAM", "JJA", "SON"]), proj)
-    f12 = plot_estelas(estelas.sel(time=[f"m{m:02g}" for m in range(1,13)]), proj)
+    f1 = estela_plot(estelas.sel(time="ALL"), proj)
+    f4 = estela_plot(estelas.sel(time=["DJF", "MAM", "JJA", "SON"]), proj)
+    f12 = estela_plot(estelas.sel(time=[f"m{m:02g}" for m in range(1,13)]), proj)
 
     f1.savefig("estela_ALL.png")
     f4.savefig("estela_seasons.png")
