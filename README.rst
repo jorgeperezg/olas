@@ -1,4 +1,11 @@
 Library with wave tools like ESTELA
 
-Install cartopy before using the package:
+https://pypi.org/project/olas/
+
+
+Installation
+------------
+
 conda install -c conda-forge cartopy
+
+pip install olas
