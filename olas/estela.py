@@ -2,6 +2,7 @@
 # ESTELA: a method for evaluating the source and travel time of the wave energy reaching a local area.
 # Ocean Dynamics, 64(8), 1181–1191. https://doi.org/10.1007/s10236-014-0740-7
 import datetime
+import re
 from glob import glob
 
 import numpy as np
@@ -17,16 +18,23 @@ gamma_fun = (
     * ((x / np.exp(1.0)) * np.sqrt(x * np.sinh(1.0 / x))) ** x
 )  # alternative to scipy.special.gamma
 
+# TODO: need to double check some of these
+# import warnings
+# warnings.filterwarnings("ignore", message="divide by zero encountered in true_divide")
+# warnings.filterwarnings("ignore", message="invalid value encountered in true_divide")
+# warnings.filterwarnings("ignore", message="invalid value encountered in multiply")
+# warnings.filterwarnings("ignore", message="overflow encountered in power")
 
+# TODO def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", dspr=20, mask="MAPSTA", groupers=None):
 def calc(datafiles, spec_info, lat0, lon0, groupers=None):
     """Calculate ESTELA dataset for a target point.
 
     Args:
         datafiles (str/list): Regular expression or list of data files.
-        spec_info (dict): hs, tp, dp, and optionally dspr and mask description.
+        spec_info (dict): hs, tp, dp, dspr and mask description.
         lat0 (float): Latitude of target point.
         lon0 (float): Longitude of target point.
-        groupers (list, optional): [description]. Defaults to None.
+        groupers (list, optional): values used to group the results.
 
     Returns:
         xr.dataset: ESTELA dataset with F and traveltime fields.
@@ -36,34 +44,32 @@ def calc(datafiles, spec_info, lat0, lon0, groupers=None):
     else:
         flist = sorted(datafiles)
 
-    npart = len(spec_info["hs"])
-    num_dspr = isinstance(spec_info["dspr"], (int, float))
-
     lon0 %= 360.0
-    sites = xr.Dataset(
-        dict(
-            lat0=xr.DataArray(dims="site", data=np.array(lat0).flatten()),
-            lon0=xr.DataArray(dims="site", data=np.array(lon0).flatten()),
-        )
-    )
+    lat0_arr = xr.DataArray(dims="site", data=np.array(lat0).flatten())
+    lon0_arr = xr.DataArray(dims="site", data=np.array(lon0).flatten())
+    sites = xr.Dataset(dict(lat0=lat0_arr, lon0=lon0_arr))
     # TODO calculate several sites at the same time. Problematic memory usage but much faster (if data reading is slow)
 
     if groupers is None:
         groupers = ["ALL", "time.season"]
 
-    # geographical constants
+    # geographical constants and initialization
     dsf = xr.open_mfdataset(flist[0])
+    for k, value in spec_info.items():
+        if isinstance(value, str) and k != "mask":  # expand regular expression
+            spec_info[k] = sorted(v for v in dsf.variables if re.fullmatch(value, v))
+    npart = len(spec_info["hs"])
+    num_dspr = isinstance(spec_info["dspr"], (int, float))
+    print(spec_info)
+
     dists, bearings = dist_and_bearing(lat0, dsf.latitude, lon0, dsf.longitude)
     dist_m = dists * 6371000 * d2r
-    # va = 1.4 * 10 ** -5; rowroa = 1 / 0.0013; sigma = 2 * np.pi / ds.tp
-    # Lemax = (rowroa * 9.81 ** 2) / (4 * sigma ** 3 * (2 * va * sigma) ** 0.5)
+    va = 1.4 * 10 ** -5
+    rowroa = 1 / 0.0013
+    # sigma = 2 * np.pi / ds.tp  # Lemax = (rowroa * 9.81 ** 2) / (4 * sigma ** 3 * (2 * va * sigma) ** 0.5)
     k_dissipation = (
-        -dist_m
-        / (1 / 0.0013 * 9.81 ** 2)
-        * 4
-        * (2 * 1.4 * 10 ** -5) ** 0.5
-        * (2 * np.pi) ** 3.5
-    )
+        -dist_m / (rowroa * 9.81 ** 2) * 4 * (2 * va) ** 0.5 * (2 * np.pi) ** 3.5
+    )  # coef_dissipation = np.exp(-dist_m / Lemax)
     th1_sin = np.sin(0.5 * bearings * d2r)
     th1_cos = np.cos(0.5 * bearings * d2r)
     mask = dsf[spec_info["mask"]] if "mask" in spec_info else None
@@ -75,39 +81,38 @@ def calc(datafiles, spec_info, lat0, lon0, groupers=None):
     for f in flist:
         print(f"{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {f}")
 
-        dsf = xr.open_mfdataset(f)
+        dsf = xr.open_mfdataset(f).chunk("auto")
         file_results = xr.Dataset()
         for ipart in range(npart):
             hs = dsf[spec_info["hs"][ipart]]
             tp = dsf[spec_info["tp"][ipart]]
             dp = dsf[spec_info["dp"][ipart]]
-            dspr = spec_info["dspr"] if num_dspr else dsf[spec_info["dp"][ipart]]
+
+            coef_dissipation = np.exp(k_dissipation * (tp ** -3.5))
 
             if dspr_calculations:
-                s = (2 / (dspr * np.pi / 180) ** 2) - 1
-                A2 = gamma_fun(s + 1) / (gamma_fun(s + 0.5) * 2 * np.pi ** 0.5)
-                coef_spread = (
-                    A2 * np.pi / 180
-                )  # deg TODO review units and compare with wavespectra
                 if num_dspr:  # don't repeat calculations
                     dspr_calculations = False
+                    dspr = spec_info["dspr"]
+                else:
+                    dspr = dsf[spec_info["dspr"][ipart]]
+                    dspr = dspr.where(dspr > 0, 20.0)
+                    raise ValueError("use numeric spread")  # TODO revise strange values
 
-            coef_dissipation = np.exp(
-                k_dissipation * tp ** -3.5
-            )  # coef_dissipation = np.exp(-dist_m / Lemax)
+                s = (2 / (dspr * np.pi / 180) ** 2) - 1
+                A2 = gamma_fun(s + 1) / (gamma_fun(s + 0.5) * 2 * np.pi ** 0.5)
+                coef_spread = A2 * np.pi / 180  # deg
+                # TODO review coef_spread units and compare with wavespectra
+
             th2 = 0.5 * np.deg2rad(dp)
-            coef_direction = abs(th1_cos * np.cos(th2) + th1_sin * np.sin(th2)) ** (
+            coef_direction = abs(np.cos(th2) * th1_cos + np.sin(th2) * th1_sin) ** (
                 2.0 * s
             )
-            with ProgressBar():
-                Spart_th = (
-                    hs ** 2 / 16 * coef_dissipation * coef_spread * coef_direction
-                ).where(
-                    vland, np.nan
-                )  # not saving much time in calculations. move to plotting step?
 
-            file_results["S_th"] = file_results.get("S_th", 0) + Spart_th
-            file_results["Stp_th"] = file_results.get("Stp_th", 0) + tp * Spart_th
+            Spart_th = hs ** 2 / 16 * coef_dissipation * coef_direction * coef_spread
+            file_results["S_th"] = file_results.get("S_th", 0) + (Spart_th)
+            file_results["Stp_th"] = file_results.get("Stp_th", 0) + (tp * Spart_th)
+
         with ProgressBar():
             file_results.load()
 
@@ -131,16 +136,9 @@ def calc(datafiles, spec_info, lat0, lon0, groupers=None):
         1.025 * 9.81 * estelas_aux["Stp_th"] / estelas_aux["ntime"] * 9.81 / 4 / np.pi
     )
     cg_mps = (estelas_aux["Stp_th"] / estelas_aux["S_th"]) * 9.81 / 4 / np.pi
-    estelas = (
-        xr.Dataset(
-            {
-                "F": 360 * Fdeg,
-                "traveltime": dist_m / 3600 / 24 / cg_mps,
-            }
-        )
-        .where(estelas_aux["S_th"] > 0, np.nan)
-        .merge(sites)
-    )
+
+    estelas_dict = {"F": 360 * Fdeg, "traveltime": dist_m / 3600 / 24 / cg_mps}
+    estelas = xr.Dataset(estelas_dict).where(vland, np.nan).merge(sites)
     estelas.F.attrs["units"] = "360 * kW / m / degree"
     estelas.traveltime.attrs["units"] = "days"
     estelas.attrs["start_time"] = str(xr.open_mfdataset(flist[0]).time[0].values)
@@ -293,25 +291,25 @@ def geographic_mask(lat0, lon0, dists, bearings, mask=None):
 
 if __name__ == "__main__":
     # datafiles = "/wave/global/era5_glob-st4_prod/ww3*01_00z/glob201[89]??01T00.nc"
-    datafiles = "/data_local/tmp/glob2018??01T00.nc"
-    spec_info = {  # fields of ds, numbers, or datarrays
-        "hs": ["phs0", "phs1", "phs2"],
-        "tp": ["ptp0", "ptp1", "ptp2"],
-        "dp": ["pdir0", "pdir1", "pdir2"],
-        "dspr": 20,
-        "mask": "MAPSTA",  # it can be None
-    }
+    # datafiles = "/data_local/tmp/glob2018??01T00.nc"
+    spec_info = dict(hs="phs.", tp="ptp.", dp="pdir.", dspr=20, mask="MAPSTA")
+
+    datafiles = "/data_local/tmp/ww3.glob_24m.2010??.nc"
+    # spec_info = dict(hs="hs", tp="tm0m1", dp="dp", dspr="spr", mask="MAPSTA") # dspr="si."
+    spec_info = dict(hs="hs.", tp="tp.", dp="th.", dspr=20, mask="MAPSTA")
+
     lat0 = 46  # -38  #, -13.76
     lon0 = -131  # 174.5  #, -172.07
-    groupers = ["ALL", "time.season", "time.month"]
+    groupers = ["ALL"]  # ["ALL", "time.season", "time.month"]
+    proj = None  # ccrs.Orthographic(lon0, lat0) # None
 
     estelas = calc(datafiles, spec_info, lat0, lon0, groupers=groupers)
-    proj = None  # ccrs.Orthographic(lon0, lat0) # None
+    # TODO: plot(estelas, proj, groupers)
     f1 = plot(estelas.sel(time="ALL"), proj)
-    f4 = plot(estelas.sel(time=["DJF", "MAM", "JJA", "SON"]), proj)
-    f12 = plot(estelas.sel(time=[f"m{m:02g}" for m in range(1, 13)]), proj)
+    # f4 = plot(estelas.sel(time=["DJF", "MAM", "JJA", "SON"]), proj)
+    # f12 = plot(estelas.sel(time=[f"m{m:02g}" for m in range(1, 13)]), proj)
 
-    f1.savefig("estela_ALL.png")
-    f4.savefig("estela_seasons.png")
-    f12.savefig("estela_months.png")
+    # f1.savefig("estela_ALL.png")
+    # f4.savefig("estela_seasons.png")
+    # f12.savefig("estela_months.png")
     plt.show()
