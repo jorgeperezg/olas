@@ -1,6 +1,7 @@
 # based on: Perez, J., Mendez, F. J., Menendez, M., & Losada, I. J. (2014).
 # ESTELA: a method for evaluating the source and travel time of the wave energy reaching a local area.
 # Ocean Dynamics, 64(8), 1181–1191. https://doi.org/10.1007/s10236-014-0740-7
+import argparse
 import datetime
 import re
 from glob import glob
@@ -18,22 +19,41 @@ gamma_fun = (
     * ((x / np.exp(1.0)) * np.sqrt(x * np.sinh(1.0 / x))) ** x
 )  # alternative to scipy.special.gamma
 
-# TODO: need to double check some of these
-# import warnings
-# warnings.filterwarnings("ignore", message="divide by zero encountered in true_divide")
-# warnings.filterwarnings("ignore", message="invalid value encountered in true_divide")
-# warnings.filterwarnings("ignore", message="invalid value encountered in multiply")
-# warnings.filterwarnings("ignore", message="overflow encountered in power")
+# TODO revise warnings
+# RuntimeWarning: invalid value encountered in power
 
-# TODO def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", dspr=20, mask="MAPSTA", groupers=None):
-def calc(datafiles, spec_info, lat0, lon0, groupers=None):
+def parser():
+    parser = argparse.ArgumentParser(description="Calculate estelas")
+    parser.add_argument("datafiles", type=str, help="Files with wave data")
+    parser.add_argument("lat0", type=float, help="Latitude target point")
+    parser.add_argument("lon0", type=float, help="Longitude target point")
+    parser.add_argument("--hs", type=str, default="hs", help="Significant wave height")
+    parser.add_argument("--tp", type=str, default="tp", help="Peak period")
+    parser.add_argument("--dp", type=str, default="dp", help="Wave direction")
+    parser.add_argument("--si", default=20, help="Directional spread")
+    parser.add_argument("-m", "--mask", type=str, default=None, help="mask")
+    parser.add_argument("-g", "--groupers", nargs="*", default=None, help="groupers")
+    parser.add_argument("-p", "--proj", type=str, default=None, help="projection")
+    parser.add_argument("-o", "--outdir", type=str, default=None, help="output directory")
+    args = parser.parse_args()
+
+    estelas = calc(args.datafiles, args.lat0, args.lon0, args.hs, args.tp, args.dp, args.si, args.mask, args.groupers)
+    plot(estelas, groupers=args.groupers, proj=args.proj, outdir=args.outdir)
+    plt.show()
+
+
+def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=None, groupers=None):
     """Calculate ESTELA dataset for a target point.
 
     Args:
         datafiles (str/list): Regular expression or list of data files.
-        spec_info (dict): hs, tp, dp, dspr and mask description.
         lat0 (float): Latitude of target point.
         lon0 (float): Longitude of target point.
+        hs (str): Information of hs field names in datafiles
+        tp (str): Information of tp field names in datafiles
+        dp (str): Information of dp field names in datafiles
+        si (str/float): Information of directional spread
+        mask (str): Information of mask
         groupers (list, optional): values used to group the results.
 
     Returns:
@@ -43,6 +63,8 @@ def calc(datafiles, spec_info, lat0, lon0, groupers=None):
         flist = sorted(glob(datafiles))
     else:
         flist = sorted(datafiles)
+    print(f"{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {len(flist)} files")
+    groupers = get_groupers(groupers)
 
     lon0 %= 360.0
     lat0_arr = xr.DataArray(dims="site", data=np.array(lat0).flatten())
@@ -50,18 +72,16 @@ def calc(datafiles, spec_info, lat0, lon0, groupers=None):
     sites = xr.Dataset(dict(lat0=lat0_arr, lon0=lon0_arr))
     # TODO calculate several sites at the same time. Problematic memory usage but much faster (if data reading is slow)
 
-    if groupers is None:
-        groupers = ["ALL", "time.season"]
-
-    # geographical constants and initialization
     dsf = xr.open_mfdataset(flist[0])
+    spec_info = dict(hs=hs, tp=tp, dp=dp, si=si)
     for k, value in spec_info.items():
-        if isinstance(value, str) and k != "mask":  # expand regular expression
+        if isinstance(value, str):  # expand regular expressions
             spec_info[k] = sorted(v for v in dsf.variables if re.fullmatch(value, v))
     npart = len(spec_info["hs"])
-    num_dspr = isinstance(spec_info["dspr"], (int, float))
+    num_si = isinstance(spec_info["si"], (int, float))
     print(spec_info)
 
+    # geographical constants and initialization
     dists, bearings = dist_and_bearing(lat0, dsf.latitude, lon0, dsf.longitude)
     dist_m = dists * 6371000 * d2r
     va = 1.4 * 10 ** -5
@@ -72,11 +92,13 @@ def calc(datafiles, spec_info, lat0, lon0, groupers=None):
     )  # coef_dissipation = np.exp(-dist_m / Lemax)
     th1_sin = np.sin(0.5 * bearings * d2r)
     th1_cos = np.cos(0.5 * bearings * d2r)
-    mask = dsf[spec_info["mask"]] if "mask" in spec_info else None
+
+    if isinstance(mask, str):
+        mask = dsf[spec_info[mask]]
     vland = geographic_mask(lat0, lon0, dists, bearings, mask=mask)
 
     # S and Stp calculations
-    dspr_calculations = True
+    si_calculations = True
     grouped_results = dict()
     for f in flist:
         print(f"{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {f}")
@@ -90,16 +112,16 @@ def calc(datafiles, spec_info, lat0, lon0, groupers=None):
 
             coef_dissipation = np.exp(k_dissipation * (tp ** -3.5))
 
-            if dspr_calculations:
-                if num_dspr:  # don't repeat calculations
-                    dspr_calculations = False
-                    dspr = spec_info["dspr"]
+            if si_calculations:
+                if num_si:  # don't repeat calculations
+                    si_calculations = False
+                    si = spec_info["si"]
                 else:
-                    dspr = dsf[spec_info["dspr"][ipart]]
-                    dspr = dspr.where(dspr > 0, 20.0)
+                    si = dsf[spec_info["si"][ipart]]
+                    si = si.where(si > 0, 20.0)
                     raise ValueError("use numeric spread")  # TODO revise strange values
 
-                s = (2 / (dspr * np.pi / 180) ** 2) - 1
+                s = (2 / (si * np.pi / 180) ** 2) - 1
                 A2 = gamma_fun(s + 1) / (gamma_fun(s + 0.5) * 2 * np.pi ** 0.5)
                 coef_spread = A2 * np.pi / 180  # deg
                 # TODO review coef_spread units and compare with wavespectra
@@ -146,76 +168,92 @@ def calc(datafiles, spec_info, lat0, lon0, groupers=None):
     return estelas
 
 
-def plot(ds, proj=None, cmap="plasma", figsize=[25, 10]):
+def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], outdir=None):
     """Plot ESTELA maps for one or several time periods
 
     Args:
-        ds (xr.dataset): ESTELA dataset with F and traveltime fields.
+        estelas (xr.dataset): ESTELA dataset with F and traveltime fields.
         proj (cartopy.crs, optional): Map projection. Defaults to PlateCarree.
         cmap (str, optional): Colormap. Defaults to "plasma".
         figsize (list, optional): Figure size. Defaults to [25,10].
 
     Returns:
-        fig: figure handle
+        figs: list of figure handles
     """
     if proj is None:
-        proj = ccrs.PlateCarree(central_longitude=lon0)
+        proj = ccrs.PlateCarree(central_longitude=float(estelas.lon0))
 
-    print(f"Plotting estela for {ds}\n")  # TODO refactor plotting
-    if ds.time.size == 1:
-        fig = plt.figure(figsize=figsize)
-        ds.F.plot(
-            subplot_kws={"projection": proj},
-            transform=ccrs.PlateCarree(),
-            cmap=cmap,
-        )
-    else:
-        g = ds.F.plot(
-            subplot_kws={"projection": proj},
-            transform=ccrs.PlateCarree(),
-            cmap=cmap,
-            col="time",
-            col_wrap=2 if ds.time.size <= 4 else 3,
-        )
-        fig = g.fig
-        fig.set_figwidth(figsize[0])
-        fig.set_figheight(figsize[1])
-
-    axes = fig.axes[:-1]
-    for i, ax in enumerate(axes):
-        if len(axes) > 1:
-            ttime = ds.traveltime.isel(time=i)
+    figs = []
+    groupers = get_groupers(groupers)
+    for grouper in groupers:
+        if grouper == "ALL":
+            ds = estelas.sel(time="ALL")
+        elif grouper == "time.season":
+            ds = estelas.sel(time=["DJF", "MAM", "JJA", "SON"])
+        elif grouper == "time.month":
+            ds = estelas.sel(time=[f"m{m:02g}" for m in range(1, 13)])
         else:
-            ttime = ds.traveltime
+            ds = estelas.copy()
 
-        ttime.plot.contour(
-            ax=ax,
-            transform=ccrs.PlateCarree(),
-            colors="grey",
-            linestyles="dashed",
-            levels=np.linspace(1, 30, 30),
-            add_labels=False,
-            linewidths=0.5,
-            zorder=2,
-        )
+        print(f"Plotting estela for {ds}\n")  # TODO refactor plotting
+        if ds.time.size == 1:
+            fig = plt.figure(figsize=figsize)
+            ds.F.plot(
+                subplot_kws={"projection": proj},
+                transform=ccrs.PlateCarree(),
+                cmap=cmap,
+            )
+        else:
+            g = ds.F.plot(
+                subplot_kws={"projection": proj},
+                transform=ccrs.PlateCarree(),
+                cmap=cmap,
+                col="time",
+                col_wrap=2 if ds.time.size <= 4 else 3,
+            )
+            fig = g.fig
+            fig.set_figwidth(figsize[0])
+            fig.set_figheight(figsize[1])
 
-        p = ttime.plot.contour(
-            ax=ax,
-            transform=ccrs.PlateCarree(),
-            colors="black",
-            linestyles="dashed",
-            levels=np.linspace(3, 30, 10),
-            add_labels=False,
-            linewidths=2,
-            zorder=4,
-        )
-        ax.clabel(p, np.linspace(3, 30, 10), colors="black", fmt="%.0fdays")
+        axes = fig.axes[:-1]
+        for i, ax in enumerate(axes):
+            if len(axes) > 1:
+                ttime = ds.traveltime.isel(time=i)
+            else:
+                ttime = ds.traveltime
 
-        ax.set_global()
-        ax.coastlines()
-        ax.stock_img()
-        ax.plot(ds.lon0, ds.lat0, "or", transform=ccrs.PlateCarree())
-    return fig
+            ttime.plot.contour(
+                ax=ax,
+                transform=ccrs.PlateCarree(),
+                colors="grey",
+                linestyles="dashed",
+                levels=np.linspace(1, 30, 30),
+                add_labels=False,
+                linewidths=0.5,
+                zorder=2,
+            )
+
+            p = ttime.plot.contour(
+                ax=ax,
+                transform=ccrs.PlateCarree(),
+                colors="black",
+                linestyles="dashed",
+                levels=np.linspace(3, 30, 10),
+                add_labels=False,
+                linewidths=2,
+                zorder=4,
+            )
+            ax.clabel(p, np.linspace(3, 30, 10), colors="black", fmt="%.0fdays")
+
+            ax.set_global()
+            ax.coastlines()
+            ax.stock_img()
+            ax.plot(float(ds.lon0), float(ds.lat0), "or", transform=ccrs.PlateCarree())
+
+        figs.append(fig)
+        if outdir is not None:
+            fig.savefig(os.path.join(outdir, f"estela_{grouper}.png"))
+    return figs
 
 
 def dist_and_bearing(lat1, lat2, lon1, lon2):
@@ -289,27 +327,24 @@ def geographic_mask(lat0, lon0, dists, bearings, mask=None):
     return vland
 
 
+def get_groupers(groupers):
+    if groupers is None:
+        groupers = ["ALL", "time.season"]
+    return groupers
+
+
 if __name__ == "__main__":
-    # datafiles = "/wave/global/era5_glob-st4_prod/ww3*01_00z/glob201[89]??01T00.nc"
-    # datafiles = "/data_local/tmp/glob2018??01T00.nc"
-    spec_info = dict(hs="phs.", tp="ptp.", dp="pdir.", dspr=20, mask="MAPSTA")
+    parser()
+    # mounted_g05 = "/wave/global/era5_glob-st4_prod/ww3*01_00z/glob201[89]??01T00.nc"
+    # local_g05 = "/data_local/tmp/glob2018??01T00.nc"
+    # local_g04 = "/data_local/tmp/ww3.glob_24m.2010??.nc"
 
-    datafiles = "/data_local/tmp/ww3.glob_24m.2010??.nc"
-    # spec_info = dict(hs="hs", tp="tm0m1", dp="dp", dspr="spr", mask="MAPSTA") # dspr="si."
-    spec_info = dict(hs="hs.", tp="tp.", dp="th.", dspr=20, mask="MAPSTA")
+    # lat0 = 46  # -38  #, -13.76
+    # lon0 = -131  # 174.5  #, -172.07
+    # groupers = ["ALL"]  # ["ALL", "time.season", "time.month"]
+    # proj = None  # ccrs.Orthographic(lon0, lat0) # None
 
-    lat0 = 46  # -38  #, -13.76
-    lon0 = -131  # 174.5  #, -172.07
-    groupers = ["ALL"]  # ["ALL", "time.season", "time.month"]
-    proj = None  # ccrs.Orthographic(lon0, lat0) # None
+    # # estelas = calc(local_g05, lat0, lon0, si=20, mask="MAPSTA", groupers=groupers)
+    # estelas = calc(local_g04, lat0, lon0, "hs.", "tp.", "th.", 20, "MAPSTA", groupers) # dsrp="si.""
 
-    estelas = calc(datafiles, spec_info, lat0, lon0, groupers=groupers)
-    # TODO: plot(estelas, proj, groupers)
-    f1 = plot(estelas.sel(time="ALL"), proj)
-    # f4 = plot(estelas.sel(time=["DJF", "MAM", "JJA", "SON"]), proj)
-    # f12 = plot(estelas.sel(time=[f"m{m:02g}" for m in range(1, 13)]), proj)
-
-    # f1.savefig("estela_ALL.png")
-    # f4.savefig("estela_seasons.png")
-    # f12.savefig("estela_months.png")
-    plt.show()
+    # # TODO: plot(estelas, proj, groupers)

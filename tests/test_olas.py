@@ -33,13 +33,7 @@ def test_geographic_mask():
 
 def test_estela():
     datafiles = os.path.join(FILES_DIR, "test20180101T??.nc")
-    spec_info = {
-        "hs": ["hs"],
-        "tp": ["tp"],
-        "dp": ["dp"],
-        "dspr": 20,
-    }
     lat0 = 46  # -38  #, -13.76
     lon0 = -131  # 174.5  #, -172.07
     groupers = ["ALL", "time.season", "time.month"]
-    estela.calc(datafiles, spec_info, lat0, lon0, groupers=groupers)
+    estela.calc(datafiles, lat0, lon0, "hs", "tp", "dp", 20, groupers=groupers)
