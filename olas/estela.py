@@ -3,6 +3,7 @@
 # Ocean Dynamics, 64(8), 1181–1191. https://doi.org/10.1007/s10236-014-0740-7
 import argparse
 import datetime
+import os
 import re
 from glob import glob
 
@@ -19,8 +20,6 @@ gamma_fun = (
     * ((x / np.exp(1.0)) * np.sqrt(x * np.sinh(1.0 / x))) ** x
 )  # alternative to scipy.special.gamma
 
-# TODO revise warnings
-# RuntimeWarning: invalid value encountered in power
 
 def parser():
     parser = argparse.ArgumentParser(description="Calculate estelas")
@@ -117,12 +116,12 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
                     si_calculations = False
                     si = spec_info["si"]
                 else:
-                    si = dsf[spec_info["si"][ipart]]
-                    si = si.where(si > 0, 20.0)
-                    raise ValueError("use numeric spread")  # TODO revise strange values
+                    si = dsf[spec_info["si"][ipart]].clip(15., 45.)
+                    # TODO find better solution to avoid invalid A2 values
 
                 s = (2 / (si * np.pi / 180) ** 2) - 1
                 A2 = gamma_fun(s + 1) / (gamma_fun(s + 0.5) * 2 * np.pi ** 0.5)
+                # TODO find faster spread approach (use normal distribution or table?)
                 coef_spread = A2 * np.pi / 180  # deg
                 # TODO review coef_spread units and compare with wavespectra
 
@@ -185,7 +184,7 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
 
     figs = []
     groupers = get_groupers(groupers)
-    for grouper in groupers:
+    for grouper in groupers:  # TODO add empty plots when no data for some of the subplots
         if grouper == "ALL":
             ds = estelas.sel(time="ALL")
         elif grouper == "time.season":
