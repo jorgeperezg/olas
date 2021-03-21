@@ -1,6 +1,12 @@
 # based on: Perez, J., Mendez, F. J., Menendez, M., & Losada, I. J. (2014).
 # ESTELA: a method for evaluating the source and travel time of the wave energy reaching a local area.
 # Ocean Dynamics, 64(8), 1181–1191. https://doi.org/10.1007/s10236-014-0740-7
+#
+# Examples:
+# calc with constant spread: estelas = calc("/data_local/tmp/glob2018??01T00.nc", 46, -131, si=20, mask="MAPSTA")
+# calc with spread: estelas = calc("/data_local/tmp/ww3.glob_24m.2010??.nc", 46, -131, "hs.", "tp.", "th.", "si.", "MAPSTA")
+# plot: plot(estelas, outdir=".")
+
 import argparse
 import datetime
 import os
@@ -179,36 +185,44 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
     Returns:
         figs: list of figure handles
     """
+    lon0 = float(estelas.lon0)
+    lat0 = float(estelas.lat0)
     if proj is None:
-        proj = ccrs.PlateCarree(central_longitude=float(estelas.lon0))
+        # proj = ccrs.Orthographic(lon0, lat0)
+        proj = ccrs.PlateCarree(central_longitude=lon0)
 
     figs = []
     groupers = get_groupers(groupers)
-    for grouper in groupers:  # TODO add empty plots when no data for some of the subplots
+    for grouper in groupers:
         if grouper == "ALL":
-            ds = estelas.sel(time="ALL")
+            time = ["ALL"]
         elif grouper == "time.season":
-            ds = estelas.sel(time=["DJF", "MAM", "JJA", "SON"])
+            time = ["DJF", "MAM", "JJA", "SON"]
         elif grouper == "time.month":
-            ds = estelas.sel(time=[f"m{m:02g}" for m in range(1, 13)])
+            time = [f"m{m:02g}" for m in range(1, 13)]
         else:
-            ds = estelas.copy()
+            time = estelas.time
 
-        print(f"Plotting estela for {ds}\n")  # TODO refactor plotting
-        if ds.time.size == 1:
+        timesize = len(time)
+        ds = estelas.sel(time=[t for t in time if t in estelas.time])
+        Faux = [ds.isel(time=0).assign(time=t)["F"]*np.nan for t in time if t not in estelas.time]
+        F = xr.concat([ds.F] + Faux, dim="time").sel(time=time)
+
+        print(f"Plotting estelas for time={time} from {ds}\n")  # TODO refactor plotting
+        if timesize == 1:
             fig = plt.figure(figsize=figsize)
-            ds.F.plot(
+            F.plot(
                 subplot_kws={"projection": proj},
                 transform=ccrs.PlateCarree(),
                 cmap=cmap,
             )
         else:
-            g = ds.F.plot(
+            g = F.plot(
                 subplot_kws={"projection": proj},
                 transform=ccrs.PlateCarree(),
                 cmap=cmap,
                 col="time",
-                col_wrap=2 if ds.time.size <= 4 else 3,
+                col_wrap=2 if timesize <= 4 else 3,
             )
             fig = g.fig
             fig.set_figwidth(figsize[0])
@@ -216,10 +230,9 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
 
         axes = fig.axes[:-1]
         for i, ax in enumerate(axes):
-            if len(axes) > 1:
-                ttime = ds.traveltime.isel(time=i)
-            else:
-                ttime = ds.traveltime
+            if time[i] not in estelas.time:
+                continue
+            ttime = ds.traveltime.sel(time=time[i])
 
             ttime.plot.contour(
                 ax=ax,
@@ -247,8 +260,9 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
             ax.set_global()
             ax.coastlines()
             ax.stock_img()
-            ax.plot(float(ds.lon0), float(ds.lat0), "or", transform=ccrs.PlateCarree())
+            ax.plot(lon0, lat0, "or", transform=ccrs.PlateCarree())
 
+        fig.suptitle(f"[{ds.start_time[:10]} - {ds.end_time[:10]}]")
         figs.append(fig)
         if outdir is not None:
             fig.savefig(os.path.join(outdir, f"estela_{grouper}.png"))
@@ -330,24 +344,9 @@ def geographic_mask(lat0, lon0, dists, bearings, mask=None):
 
 def get_groupers(groupers):
     if groupers is None:
-        groupers = ["ALL", "time.season"]
+        groupers = ["ALL", "time.season", "time.month"]
     return groupers
 
 
 if __name__ == "__main__":
-    # parser()
-
-    # mounted_g05 = "/wave/global/era5_glob-st4_prod/ww3*01_00z/glob201[89]??01T00.nc"
-    # local_g05 = "/data_local/tmp/glob2018??01T00.nc"
-    local_g04 = "/data_local/tmp/ww3.glob_24m.2010??.nc"
-
-    lat0 = 46  # -38  #, -13.76
-    lon0 = -131  # 174.5  #, -172.07
-    groupers = ["ALL"]  # ["ALL", "time.season", "time.month"]
-    proj = None  # ccrs.Orthographic(lon0, lat0) # None
-
-    # # estelas = calc(local_g05, lat0, lon0, si=20, mask="MAPSTA", groupers=groupers)
-    estelas = calc(local_g04, lat0, lon0, "hs.", "tp.", "th.", 20, "MAPSTA", groupers) # dsrp="si.""
-
-    plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], outdir=".")
-    # # TODO: plot(estelas, proj, groupers)
+    parser()
