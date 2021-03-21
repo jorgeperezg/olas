@@ -15,8 +15,9 @@ keywords = ["waves", "xarray", "ESTELA"]
 python = "^3.7.1"
 xarray = "^0.17.0"
 dask = {extras = ["complete"], version = "^2021.3.0"}
-matplotlib = "^3.3.4"
+scipy = "^1.6.1"
 numpy = "^1.20.1"
+matplotlib = "^3.3.4"
 netCDF4 = "^1.5.6"
 Cartopy = "^0.18.0"
 

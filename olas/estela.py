@@ -24,14 +24,14 @@ gamma_fun = (
 def parser():
     parser = argparse.ArgumentParser(description="Calculate estelas")
     parser.add_argument("datafiles", type=str, help="Files with wave data")
-    parser.add_argument("lat0", type=float, help="Latitude target point")
-    parser.add_argument("lon0", type=float, help="Longitude target point")
-    parser.add_argument("--hs", type=str, default="hs", help="Significant wave height")
-    parser.add_argument("--tp", type=str, default="tp", help="Peak period")
-    parser.add_argument("--dp", type=str, default="dp", help="Wave direction")
-    parser.add_argument("--si", default=20, help="Directional spread")
-    parser.add_argument("-m", "--mask", type=str, default=None, help="mask")
-    parser.add_argument("-g", "--groupers", nargs="*", default=None, help="groupers")
+    parser.add_argument("lat0", type=float, help="Latitude of the target point")
+    parser.add_argument("lon0", type=float, help="Longitude of the target point")
+    parser.add_argument("--hs", type=str, default="hs", help="Significant wave height fieldnames")
+    parser.add_argument("--tp", type=str, default="tp", help="Peak period fieldnames")
+    parser.add_argument("--dp", type=str, default="dp", help="Wave direction fieldnames")
+    parser.add_argument("--si", default=20, help="Directional spread fieldnames")
+    parser.add_argument("-m", "--mask", type=str, default=None, help="mask fieldname")
+    parser.add_argument("-g", "--groupers", nargs="*", default=None, help="groupers for results")
     parser.add_argument("-p", "--proj", type=str, default=None, help="projection")
     parser.add_argument("-o", "--outdir", type=str, default=None, help="output directory")
     args = parser.parse_args()
@@ -93,7 +93,7 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
     th1_cos = np.cos(0.5 * bearings * d2r)
 
     if isinstance(mask, str):
-        mask = dsf[spec_info[mask]]
+        mask = dsf[mask]
     vland = geographic_mask(lat0, lon0, dists, bearings, mask=mask)
 
     # S and Stp calculations
@@ -113,8 +113,8 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
 
             if si_calculations:
                 if num_si:  # don't repeat calculations
-                    si_calculations = False
                     si = spec_info["si"]
+                    si_calculations = False
                 else:
                     si = dsf[spec_info["si"][ipart]].clip(15., 45.)
                     # TODO find better solution to avoid invalid A2 values
@@ -275,6 +275,7 @@ def dist_and_bearing(lat1, lat2, lon1, lon2):
     a = np.sin(latdifr / 2) * np.sin(latdifr / 2) + np.cos(lat1r) * np.cos(
         lat2r
     ) * np.sin(londifr / 2) * np.sin(londifr / 2)
+    a = a.clip(0., 1.) # to avoid warning for a=1.0000001,
     degdist = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)) / d2r
 
     y = np.sin(londifr) * np.cos(lat2r)
@@ -307,6 +308,7 @@ def geographic_mask(lat0, lon0, dists, bearings, mask=None):
     dmax = 180 * np.ones(360)
     if mask is None:
         mask = xr.ones_like(dists)
+    mask = mask.where(dists > 0, np.nan)
 
     valid = (mask != 1).values.flatten()
     d_arr = dists.values.flatten()[valid]
@@ -333,17 +335,19 @@ def get_groupers(groupers):
 
 
 if __name__ == "__main__":
-    parser()
+    # parser()
+
     # mounted_g05 = "/wave/global/era5_glob-st4_prod/ww3*01_00z/glob201[89]??01T00.nc"
     # local_g05 = "/data_local/tmp/glob2018??01T00.nc"
-    # local_g04 = "/data_local/tmp/ww3.glob_24m.2010??.nc"
+    local_g04 = "/data_local/tmp/ww3.glob_24m.2010??.nc"
 
-    # lat0 = 46  # -38  #, -13.76
-    # lon0 = -131  # 174.5  #, -172.07
-    # groupers = ["ALL"]  # ["ALL", "time.season", "time.month"]
-    # proj = None  # ccrs.Orthographic(lon0, lat0) # None
+    lat0 = 46  # -38  #, -13.76
+    lon0 = -131  # 174.5  #, -172.07
+    groupers = ["ALL"]  # ["ALL", "time.season", "time.month"]
+    proj = None  # ccrs.Orthographic(lon0, lat0) # None
 
     # # estelas = calc(local_g05, lat0, lon0, si=20, mask="MAPSTA", groupers=groupers)
-    # estelas = calc(local_g04, lat0, lon0, "hs.", "tp.", "th.", 20, "MAPSTA", groupers) # dsrp="si.""
+    estelas = calc(local_g04, lat0, lon0, "hs.", "tp.", "th.", 20, "MAPSTA", groupers) # dsrp="si.""
 
+    plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], outdir=".")
     # # TODO: plot(estelas, proj, groupers)
