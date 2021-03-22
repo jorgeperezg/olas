@@ -2,7 +2,7 @@
 # ESTELA: a method for evaluating the source and travel time of the wave energy reaching a local area.
 # Ocean Dynamics, 64(8), 1181–1191. https://doi.org/10.1007/s10236-014-0740-7
 #
-# Examples:
+# Examples (from olas.estela import calc, plot):
 # calc with constant spread: estelas = calc("/data_local/tmp/glob2018??01T00.nc", 46, -131, si=20, mask="MAPSTA")
 # calc with spread: estelas = calc("/data_local/tmp/ww3.glob_24m.2010??.nc", 46, -131, "hs.", "tp.", "th.", "si.", "MAPSTA")
 # plot: plot(estelas, outdir=".")
@@ -19,12 +19,9 @@ from cartopy import crs as ccrs
 from cartopy.io import shapereader as shpreader
 from dask.diagnostics import ProgressBar
 from matplotlib import pyplot as plt
+from scipy import special
 
 d2r = np.pi / 180.0
-gamma_fun = (
-    lambda x: np.sqrt(2.0 * np.pi / x)
-    * ((x / np.exp(1.0)) * np.sqrt(x * np.sinh(1.0 / x))) ** x
-)  # alternative to scipy.special.gamma
 
 
 def parser():
@@ -126,12 +123,12 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
                     # TODO find better solution to avoid invalid A2 values
 
                 s = (2 / (si * np.pi / 180) ** 2) - 1
-                A2 = gamma_fun(s + 1) / (gamma_fun(s + 0.5) * 2 * np.pi ** 0.5)
+                A2 = special.gamma(s + 1) / (special.gamma(s + 0.5) * 2 * np.pi ** 0.5)
                 # TODO find faster spread approach (use normal distribution or table?)
                 coef_spread = A2 * np.pi / 180  # deg
                 # TODO review coef_spread units and compare with wavespectra
 
-            th2 = 0.5 * np.deg2rad(dp)
+            th2 = 0.5 * dp * d2r
             coef_direction = abs(np.cos(th2) * th1_cos + np.sin(th2) * th1_sin) ** (
                 2.0 * s
             )
