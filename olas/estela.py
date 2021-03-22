@@ -3,7 +3,7 @@
 # Ocean Dynamics, 64(8), 1181–1191. https://doi.org/10.1007/s10236-014-0740-7
 #
 # Examples (from olas.estela import calc, plot):
-# calc with constant spread: estelas = calc("/data_local/tmp/glob2018??01T00.nc", 46, -131, si=20, mask="MAPSTA")
+# calc with constant spread: estelas = calc("/data_local/tmp/glob2018??01T00.nc", 46, -131, mask="MAPSTA")
 # calc with spread: estelas = calc("/data_local/tmp/ww3.glob_24m.2010??.nc", 46, -131, "hs.", "tp.", "th.", "si.", "MAPSTA")
 # plot: plot(estelas, outdir=".")
 
@@ -51,10 +51,10 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
         datafiles (str/list): Regular expression or list of data files.
         lat0 (float): Latitude of target point.
         lon0 (float): Longitude of target point.
-        hs (str): Information of hs field names in datafiles
-        tp (str): Information of tp field names in datafiles
-        dp (str): Information of dp field names in datafiles
-        si (str/float): Information of directional spread
+        hs (str/list): regex/list of hs field names in datafiles
+        tp (str/list): regex/list of tp field names in datafiles
+        dp (str/list): regex/list of dp field names in datafiles
+        si (str/list/float): Value or regex/list of directional spread field names
         mask (str): Information of mask
         groupers (list, optional): values used to group the results.
 
@@ -188,6 +188,9 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
         # proj = ccrs.Orthographic(lon0, lat0)
         proj = ccrs.PlateCarree(central_longitude=lon0)
 
+    c1day = dict(levels=np.linspace(1, 30, 30), colors="grey", linewidths=0.5)
+    c3day = dict(levels=np.linspace(3, 30, 10), colors="black", linewidths=1.0)
+
     figs = []
     groupers = get_groupers(groupers)
     for grouper in groupers:
@@ -226,33 +229,22 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
             fig.set_figheight(figsize[1])
 
         axes = fig.axes[:-1]
-        for i, ax in enumerate(axes):
-            if time[i] not in estelas.time:
+        for iax, ax in enumerate(axes):
+            if time[iax] not in estelas.time:
                 continue
-            ttime = ds.traveltime.sel(time=time[i])
 
-            ttime.plot.contour(
-                ax=ax,
-                transform=ccrs.PlateCarree(),
-                colors="grey",
-                linestyles="dashed",
-                levels=np.linspace(1, 30, 30),
-                add_labels=False,
-                linewidths=0.5,
-                zorder=2,
-            )
-
-            p = ttime.plot.contour(
-                ax=ax,
-                transform=ccrs.PlateCarree(),
-                colors="black",
-                linestyles="dashed",
-                levels=np.linspace(3, 30, 10),
-                add_labels=False,
-                linewidths=2,
-                zorder=4,
-            )
-            ax.clabel(p, np.linspace(3, 30, 10), colors="black", fmt="%.0fdays")
+            ttime = ds.traveltime.sel(time=time[iax])
+            for ic, c_args in enumerate([c1day, c3day]):
+                p = ttime.plot.contour(
+                    ax=ax,
+                    transform=ccrs.PlateCarree(),
+                    linestyles="solid",
+                    add_labels=False,
+                    zorder=2*(1+ic),
+                    **c_args,
+                )
+            if timesize == 1:
+                ax.clabel(p, c3day["levels"], colors="black", fmt="%.0fdays")
 
             ax.set_global()
             ax.coastlines()
