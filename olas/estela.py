@@ -194,14 +194,12 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
     figs = []
     groupers = get_groupers(groupers)
     for grouper in groupers:
-        if grouper == "ALL":
-            time = ["ALL"]
-        elif grouper == "time.season":
+        if grouper == "time.season":
             time = ["DJF", "MAM", "JJA", "SON"]
         elif grouper == "time.month":
             time = [f"m{m:02g}" for m in range(1, 13)]
         else:
-            time = estelas.time
+            time = [grouper]
 
         timesize = len(time)
         ds = estelas.sel(time=[t for t in time if t in estelas.time])
