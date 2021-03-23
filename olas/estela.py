@@ -182,8 +182,9 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
     Returns:
         figs: list of figure handles
     """
-    lon0 = float(estelas.lon0)
     lat0 = float(estelas.lat0)
+    lon0 = float(estelas.lon0)
+    gc = great_circles(lat0, lon0, ngc=16)
     if proj is None:
         # proj = ccrs.Orthographic(lon0, lat0)
         proj = ccrs.PlateCarree(central_longitude=lon0)
@@ -244,6 +245,7 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
             if timesize == 1:
                 ax.clabel(p, c3day["levels"], colors="black", fmt="%.0fdays")
 
+            gcp = ax.plot(gc.lon, gc.lat, ".r", markersize=1, transform=ccrs.PlateCarree())
             ax.set_global()
             ax.coastlines()
             ax.stock_img()
@@ -254,6 +256,33 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
         if outdir is not None:
             fig.savefig(os.path.join(outdir, f"estela_{grouper}.png"))
     return figs
+
+
+def great_circles(lat1, lon1, ngc=16):
+    """ Calculate great circles
+
+    Args:
+        lat1 (float): Latitude origin point
+        lon1 (float): Longitude origin point
+        ngc (int, optional): Number of great circles. Defaults to 16.
+
+    Returns:
+        xr.Dataset: dataset with distance and bearing dimensions
+    """
+    lat1_r = lat1 * d2r
+    lon1_r = lon1 * d2r
+    dist_r = xr.DataArray(dims="distance", data=np.linspace(0.5, 179.5, 179) * d2r)
+    brng_r = xr.DataArray(dims="bearing", data=np.linspace(0, 360, ngc+1)[:-1] * d2r)
+
+    sin_lat1 = np.sin(lat1_r)
+    cos_lat1 = np.cos(lat1_r)
+    sin_dR = np.sin(dist_r)
+    cos_dR = np.cos(dist_r)
+
+    lat2 = np.arcsin(sin_lat1*cos_dR + cos_lat1*sin_dR*np.cos(brng_r))
+    lon2 = lon1_r + np.arctan2(np.sin(brng_r)*sin_dR*cos_lat1, cos_dR-sin_lat1*np.sin(lat2))
+    gc = xr.Dataset({"lat": lat2 / d2r, "lon": (lon2 / d2r % 360).transpose()})
+    return gc
 
 
 def dist_and_bearing(lat1, lat2, lon1, lon2):
@@ -268,19 +297,19 @@ def dist_and_bearing(lat1, lat2, lon1, lon2):
     Returns:
         float/array: distances and bearings in degrees
     """
-    lat1r = lat1 * d2r
-    lat2r = lat2 * d2r
-    latdifr = (lat2 - lat1) * d2r
-    londifr = (lon2 - lon1) * d2r
+    lat1_r = lat1 * d2r
+    lat2_r = lat2 * d2r
+    latdif_r = (lat2 - lat1) * d2r
+    londif_r = (lon2 - lon1) * d2r
 
-    a = np.sin(latdifr / 2) * np.sin(latdifr / 2) + np.cos(lat1r) * np.cos(
-        lat2r
-    ) * np.sin(londifr / 2) * np.sin(londifr / 2)
+    a = np.sin(latdif_r / 2) * np.sin(latdif_r / 2) + np.cos(lat1_r) * np.cos(
+        lat2_r
+    ) * np.sin(londif_r / 2) * np.sin(londif_r / 2)
     a = a.clip(0., 1.) # to avoid warning for a=1.0000001,
     degdist = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)) / d2r
 
-    y = np.sin(londifr) * np.cos(lat2r)
-    x = np.cos(lat1r) * np.sin(lat2r) - np.sin(lat1r) * np.cos(lat2r) * np.cos(londifr)
+    y = np.sin(londif_r) * np.cos(lat2_r)
+    x = np.cos(lat1_r) * np.sin(lat2_r) - np.sin(lat1_r) * np.cos(lat2_r) * np.cos(londif_r)
     brng = (np.arctan2(y, x) / d2r).transpose() % 360
     return (degdist, brng)
 
@@ -337,3 +366,5 @@ def get_groupers(groupers):
 
 if __name__ == "__main__":
     parser()
+    # TODO interpolate to polar coordinates
+    # TODO plot increase/decrease energy
