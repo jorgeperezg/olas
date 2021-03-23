@@ -170,6 +170,19 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
     return estelas
 
 
+def plot_incF(estelas):
+    # TODO interpolate to polar coordinates
+    # TODO plot increase/decrease energy
+    lat0 = float(estelas.lat0)
+    lon0 = float(estelas.lon0)
+    gc = great_circles(lat0, lon0, ngc=360)
+
+    polarF = estelas.F.interp(gc)
+    incF = polarF.diff("distance")
+    plt.pcolormesh(gc.longitude, gc.latitude, incF.sel(time="ALL"), shading="auto")
+    plt.show()
+
+
 def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], outdir=None):
     """Plot ESTELA maps for one or several time periods
 
@@ -245,7 +258,7 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
             if timesize == 1:
                 ax.clabel(p, c3day["levels"], colors="black", fmt="%.0fdays")
 
-            gcp = ax.plot(gc.lon, gc.lat, ".r", markersize=1, transform=ccrs.PlateCarree())
+            gcp = ax.plot(gc.longitude, gc.latitude, ".r", markersize=1, transform=ccrs.PlateCarree())
             ax.set_global()
             ax.coastlines()
             ax.stock_img()
@@ -281,7 +294,7 @@ def great_circles(lat1, lon1, ngc=16):
 
     lat2 = np.arcsin(sin_lat1*cos_dR + cos_lat1*sin_dR*np.cos(brng_r))
     lon2 = lon1_r + np.arctan2(np.sin(brng_r)*sin_dR*cos_lat1, cos_dR-sin_lat1*np.sin(lat2))
-    gc = xr.Dataset({"lat": lat2 / d2r, "lon": (lon2 / d2r % 360).transpose()})
+    gc = xr.Dataset({"latitude": lat2 / d2r, "longitude": (lon2 / d2r % 360).transpose()})
     return gc
 
 
@@ -366,5 +379,3 @@ def get_groupers(groupers):
 
 if __name__ == "__main__":
     parser()
-    # TODO interpolate to polar coordinates
-    # TODO plot increase/decrease energy
