@@ -25,6 +25,7 @@ Cartopy = "^0.18.0"
 pytest = "^5.2"
 pylint = "^2.7.2"
 black = {version = "^20.8b1", allow-prereleases = true}
+ipython = "^7.21.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

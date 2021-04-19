@@ -160,8 +160,7 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
         1.025 * 9.81 * estelas_aux["Stp_th"] / estelas_aux["ntime"] * 9.81 / 4 / np.pi
     )
     cg_mps = (estelas_aux["Stp_th"] / estelas_aux["S_th"]) * 9.81 / 4 / np.pi
-
-    estelas_dict = {"F": 360 * Fdeg, "traveltime": dist_m / 3600 / 24 / cg_mps}
+    estelas_dict = {"F": 360 * Fdeg, "traveltime": (3600 * 24 * cg_mps / dist_m)**-1}  # dimensions order tyx
     estelas = xr.Dataset(estelas_dict).where(vland, np.nan).merge(sites)
     estelas.F.attrs["units"] = "360 * kW / m / degree"
     estelas.traveltime.attrs["units"] = "days"
@@ -170,27 +169,17 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
     return estelas
 
 
-def plot_incF(estelas):
-    # TODO interpolate to polar coordinates
-    # TODO plot increase/decrease energy
-    lat0 = float(estelas.lat0)
-    lon0 = float(estelas.lon0)
-    gc = great_circles(lat0, lon0, ngc=360)
-
-    polarF = estelas.F.interp(gc)
-    incF = polarF.diff("distance")
-    plt.pcolormesh(gc.longitude, gc.latitude, incF.sel(time="ALL"), shading="auto")
-    plt.show()
-
-
-def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], outdir=None):
+def plot(estelas, groupers=None, gainloss=False, proj=None, cmap=None, figsize=[25, 10], outdir=None):
     """Plot ESTELA maps for one or several time periods
 
     Args:
         estelas (xr.dataset): ESTELA dataset with F and traveltime fields.
+        groupers (list, optional): Values used to group the results.
+        gainloss (boolean, optional): Flag to plot maps of gain/loss of energy.
         proj (cartopy.crs, optional): Map projection. Defaults to PlateCarree.
         cmap (str, optional): Colormap. Defaults to "plasma".
         figsize (list, optional): Figure size. Defaults to [25,10].
+        outdir (str): Path to save figures. Defaults to None.
 
     Returns:
         figs: list of figure handles
@@ -198,12 +187,15 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
     lat0 = float(estelas.lat0)
     lon0 = float(estelas.lon0)
     gc = great_circles(lat0, lon0, ngc=16)
+    c1day = dict(levels=np.linspace(1, 30, 30), colors="grey", linewidths=0.5)
+    c3day = dict(levels=np.linspace(3, 30, 10), colors="black", linewidths=1.0)
+
     if proj is None:
         # proj = ccrs.Orthographic(lon0, lat0)
         proj = ccrs.PlateCarree(central_longitude=lon0)
 
-    c1day = dict(levels=np.linspace(1, 30, 30), colors="grey", linewidths=0.5)
-    c3day = dict(levels=np.linspace(3, 30, 10), colors="black", linewidths=1.0)
+    if cmap is None:
+        cmap = "seismic" if gainloss else "inferno"
 
     figs = []
     groupers = get_groupers(groupers)
@@ -215,26 +207,37 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
         else:
             time = [grouper]
 
-        timesize = len(time)
         ds = estelas.sel(time=[t for t in time if t in estelas.time])
-        Faux = [ds.isel(time=0).assign(time=t)["F"]*np.nan for t in time if t not in estelas.time]
-        F = xr.concat([ds.F] + Faux, dim="time").sel(time=time)
+        aux = [ds.isel(time=0).assign(time=t)["F"] * np.nan for t in time if t not in estelas.time]
+        F = xr.concat([ds["F"]] + aux, dim="time").sel(time=time)
 
-        print(f"Plotting estelas for time={time} from {ds}\n")  # TODO refactor plotting
-        if timesize == 1:
+        if gainloss:
+            ngc = 360
+            polar_grid = great_circles(lat0, lon0, ngc)
+            polarF = F.interp(polar_grid)
+            dist_midpoints = (polarF.distance.values[1:] + polarF.distance.values[:-1]) / 2
+            cosd = np.cos(polarF.distance * d2r)
+            S = 4 * np.pi * 6371**2 / ngc * abs(cosd.diff("distance")) / 2  # km**2
+            incF = (polarF.diff("distance") / S).assign_coords(distance=dist_midpoints)
+            F *= np.nan  # empty pcolors, using contourf
+            F.attrs["units"] = "360 x (kW / m) / (degree / km**2)"
+
+        print(f"Plotting estelas for time={time} from {ds}\n")
+        # TODO refactor plotting and choose sensible colorbar limits
+        if len(time) == 1:
             fig = plt.figure(figsize=figsize)
+            plt.axes(projection=proj)
             F.plot(
-                subplot_kws={"projection": proj},
                 transform=ccrs.PlateCarree(),
                 cmap=cmap,
             )
         else:
             g = F.plot(
-                subplot_kws={"projection": proj},
                 transform=ccrs.PlateCarree(),
                 cmap=cmap,
                 col="time",
-                col_wrap=2 if timesize <= 4 else 3,
+                col_wrap=2 if len(time) <= 4 else 3,
+                subplot_kws={"projection": proj},
             )
             fig = g.fig
             fig.set_figwidth(figsize[0])
@@ -242,8 +245,20 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
 
         axes = fig.axes[:-1]
         for iax, ax in enumerate(axes):
-            if time[iax] not in estelas.time:
+            if time[iax] not in ds.time:
                 continue
+
+            if gainloss:
+                Fi = incF.sel(time=time[iax])
+                clim = float(abs(Fi).quantile(0.95))
+                p = ax.contourf(
+                    incF.longitude,
+                    incF.latitude,
+                    Fi.clip(-clim, clim),
+                    transform=ccrs.PlateCarree(),
+                    levels=15,
+                    cmap=cmap,
+                )
 
             ttime = ds.traveltime.sel(time=time[iax])
             for ic, c_args in enumerate([c1day, c3day]):
@@ -255,19 +270,20 @@ def plot(estelas, groupers=None, proj=None, cmap="plasma", figsize=[25, 10], out
                     zorder=2*(1+ic),
                     **c_args,
                 )
-            if timesize == 1:
+            if len(time) == 1:
                 ax.clabel(p, c3day["levels"], colors="black", fmt="%.0fdays")
+                ax.plot(gc.longitude, gc.latitude, ".r", markersize=1, transform=ccrs.PlateCarree())
 
-            gcp = ax.plot(gc.longitude, gc.latitude, ".r", markersize=1, transform=ccrs.PlateCarree())
             ax.set_global()
             ax.coastlines()
             ax.stock_img()
-            ax.plot(lon0, lat0, "or", transform=ccrs.PlateCarree())
+            ax.plot(lon0, lat0, "ok", transform=ccrs.PlateCarree())
 
         fig.suptitle(f"[{ds.start_time[:10]} - {ds.end_time[:10]}]")
         figs.append(fig)
         if outdir is not None:
-            fig.savefig(os.path.join(outdir, f"estela_{grouper}.png"))
+            maptype = "gainloss" if gainloss else "base"
+            fig.savefig(os.path.join(outdir, f"estela_{grouper}_{maptype}.png"))
     return figs
 
 
@@ -282,9 +298,9 @@ def great_circles(lat1, lon1, ngc=16):
     Returns:
         xr.Dataset: dataset with distance and bearing dimensions
     """
-    lat1_r = lat1 * d2r
-    lon1_r = lon1 * d2r
-    dist_r = xr.DataArray(dims="distance", data=np.linspace(0.5, 179.5, 179) * d2r)
+    lat1_r = float(lat1) * d2r
+    lon1_r = float(lon1) * d2r
+    dist_r = xr.DataArray(dims="distance", data=np.linspace(0.5, 179.5, 180) * d2r)
     brng_r = xr.DataArray(dims="bearing", data=np.linspace(0, 360, ngc+1)[:-1] * d2r)
 
     sin_lat1 = np.sin(lat1_r)
@@ -295,6 +311,8 @@ def great_circles(lat1, lon1, ngc=16):
     lat2 = np.arcsin(sin_lat1*cos_dR + cos_lat1*sin_dR*np.cos(brng_r))
     lon2 = lon1_r + np.arctan2(np.sin(brng_r)*sin_dR*cos_lat1, cos_dR-sin_lat1*np.sin(lat2))
     gc = xr.Dataset({"latitude": lat2 / d2r, "longitude": (lon2 / d2r % 360).transpose()})
+    gc["distance"] = dist_r / d2r
+    gc["bearing"] = brng_r / d2r
     return gc
 
 
