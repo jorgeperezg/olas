@@ -2,10 +2,12 @@
 # ESTELA: a method for evaluating the source and travel time of the wave energy reaching a local area.
 # Ocean Dynamics, 64(8), 1181–1191. https://doi.org/10.1007/s10236-014-0740-7
 #
-# Examples (from olas.estela import calc, plot):
+# Examples:
+# from olas.estela import calc, plot
 # calc with constant spread: estelas = calc("/data_local/tmp/glob2018??01T00.nc", 46, -131, mask="MAPSTA")
 # calc with spread: estelas = calc("/data_local/tmp/ww3.glob_24m.2010??.nc", 46, -131, "hs.", "tp.", "th.", "si.", "MAPSTA")
-# plot: plot(estelas, outdir=".")
+# plot energy maps: plot(estelas, outdir=".")
+# plot gain/loss maps: plot(estelas, gainloss=True, outdir=".")
 
 import argparse
 import datetime
@@ -162,14 +164,14 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
     cg_mps = (estelas_aux["Stp_th"] / estelas_aux["S_th"]) * 9.81 / 4 / np.pi
     estelas_dict = {"F": 360 * Fdeg, "traveltime": (3600 * 24 * cg_mps / dist_m)**-1}  # dimensions order tyx
     estelas = xr.Dataset(estelas_dict).where(vland, np.nan).merge(sites)
-    estelas.F.attrs["units"] = "360 * kW / m / degree"
+    estelas.F.attrs["units"] = "$\\frac{kW}{m\\circ}$"
     estelas.traveltime.attrs["units"] = "days"
     estelas.attrs["start_time"] = str(xr.open_mfdataset(flist[0]).time[0].values)
     estelas.attrs["end_time"] = str(xr.open_mfdataset(flist[-1]).time[-1].values)
     return estelas
 
 
-def plot(estelas, groupers=None, gainloss=False, proj=None, cmap=None, figsize=[25, 10], outdir=None):
+def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cmap=None, figsize=[25, 10], outdir=None):
     """Plot ESTELA maps for one or several time periods
 
     Args:
@@ -189,6 +191,7 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, cmap=None, figsize=[
     gc = great_circles(lat0, lon0, ngc=16)
     c1day = dict(levels=np.linspace(1, 30, 30), colors="grey", linewidths=0.5)
     c3day = dict(levels=np.linspace(3, 30, 10), colors="black", linewidths=1.0)
+    # TODO: type of plots where traveltimes are included should not be hardcoded
 
     if proj is None:
         # proj = ccrs.Orthographic(lon0, lat0)
@@ -210,8 +213,10 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, cmap=None, figsize=[
         ds = estelas.sel(time=[t for t in time if t in estelas.time])
         aux = [ds.isel(time=0).assign(time=t)["F"] * np.nan for t in time if t not in estelas.time]
         F = xr.concat([ds["F"]] + aux, dim="time").sel(time=time)
+        F = F.dropna("longitude", how="all").dropna("latitude", how="all")
 
         if gainloss:
+            # TODO: change gainloss argument to fieldname with F as default and calculate Fgl in calc
             ngc = 360
             polar_grid = great_circles(lat0, lon0, ngc)
             polarF = F.interp(polar_grid)
@@ -220,7 +225,11 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, cmap=None, figsize=[
             S = 4 * np.pi * 6371**2 / ngc * abs(cosd.diff("distance")) / 2  # km**2
             incF = (polarF.diff("distance") / S).assign_coords(distance=dist_midpoints)
             F *= np.nan  # empty pcolors, using contourf
-            F.attrs["units"] = "360 x (kW / m) / (degree / km**2)"
+            F.attrs["standard_name"] = "${\\Delta}F$"
+            F.attrs["units"] = "$\\frac{kW}{m\\circ{km^2}}$"  # colorbar defined for pcolors
+        else:
+            F = 360 * F
+            F.attrs["units"] = "$360\\times\\frac{kW}{m\\circ}$"
 
         print(f"Plotting estelas for time={time} from {ds}\n")
         # TODO refactor plotting and choose sensible colorbar limits
@@ -243,8 +252,8 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, cmap=None, figsize=[
             fig.set_figwidth(figsize[0])
             fig.set_figheight(figsize[1])
 
-        axes = fig.axes[:-1]
-        for iax, ax in enumerate(axes):
+        for iax, ax in enumerate(fig.axes[:-1]):
+            extent = ax.get_extent()
             if time[iax] not in ds.time:
                 continue
 
@@ -274,7 +283,10 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, cmap=None, figsize=[
                 ax.clabel(p, c3day["levels"], colors="black", fmt="%.0fdays")
                 ax.plot(gc.longitude, gc.latitude, ".r", markersize=1, transform=ccrs.PlateCarree())
 
-            ax.set_global()
+            if set_global:
+                ax.set_global()
+            else:
+                ax.set_extent(extent, crs=proj)
             ax.coastlines()
             ax.stock_img()
             ax.plot(lon0, lat0, "ok", transform=ccrs.PlateCarree())
@@ -390,6 +402,14 @@ def geographic_mask(lat0, lon0, dists, bearings, mask=None):
 
 
 def get_groupers(groupers):
+    """ Get default groupers if the input is None
+
+    Args:
+        groupers (list): groupers for calc and plot functions or None
+
+    Returns:
+        list: groupers for calc and plot functions
+    """
     if groupers is None:
         groupers = ["ALL", "time.season", "time.month"]
     return groupers
