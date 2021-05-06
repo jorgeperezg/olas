@@ -23,10 +23,6 @@
         
         <link rel="stylesheet" href="assets/stylesheets/palette.ef6f36e2.min.css">
         
-          
-          
-          <meta name="theme-color" content="#4cae4f">
-        
       
     
     
@@ -52,7 +48,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="green" data-md-color-accent="lightgreen">
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
   
     
     <script>function __prefix(e){return new URL(".",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -238,6 +234,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    Basic usage
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -359,6 +362,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    Basic usage
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -383,15 +393,25 @@ version" src="https://img.shields.io/pypi/v/olas.svg" /></a>
 version" src="https://img.shields.io/conda/vn/conda-forge/olas.svg" /></a>
 <a href="https://pypi.python.org/pypi/olas"><img alt="python supported
 shield" src="https://img.shields.io/pypi/pyversions/olas.svg" /></a></p>
-<p>Library with wave tools like ESTELA</p>
+<p>Library with wave tools. At the moment it only includes a prototype of ESTELA.</p>
 <p>Documentation: <a href="https://jorgeperezg.github.io/olas">https://jorgeperezg.github.io/olas</a></p>
+<p>The documentation is generated with <code>poetry run portray on_github_pages</code></p>
 <h2 id="installation">Installation</h2>
-<p>with conda:</p>
+<p>Installation with conda is straightforward</p>
 <div class="codehilite"><pre><span></span><code>conda install -c conda-forge olas
 </code></pre></div>
 
-<p>with pip:</p>
-<div class="codehilite"><pre><span></span><code>pip install olas # requires having cartopy (can be installed with conda install -c conda-forge cartopy)
+<p>Installation with pip requires cartopy (it can be installed with <code>conda install -c conda-forge cartopy</code>):</p>
+<div class="codehilite"><pre><span></span><code>pip install olas 
+</code></pre></div>
+
+<h2 id="basic-usage">Basic usage</h2>
+<p>Calculate and plot ESTELA maps from netcdf files.</p>
+<p>NOTE: The geographic mask calculation has to be improved</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">olas.estela</span> <span class="kn">import</span> <span class="n">calc</span><span class="p">,</span> <span class="n">plot</span>
+<span class="n">estelas</span> <span class="o">=</span> <span class="n">calc</span><span class="p">(</span><span class="s2">&quot;./tests/sample_files/test20180101T??.nc&quot;</span><span class="p">,</span> <span class="mi">44</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;hs&quot;</span><span class="p">,</span> <span class="s2">&quot;tp&quot;</span><span class="p">,</span> <span class="s2">&quot;dp&quot;</span><span class="p">)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">estelas</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">estelas</span><span class="p">,</span> <span class="n">gainloss</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
 </code></pre></div>
                 
               
