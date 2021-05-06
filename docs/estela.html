@@ -1,0 +1,1039 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>olas.estela API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>olas.estela</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># based on: Perez, J., Mendez, F. J., Menendez, M., &amp; Losada, I. J. (2014).
+# ESTELA: a method for evaluating the source and travel time of the wave energy reaching a local area.
+# Ocean Dynamics, 64(8), 1181–1191. https://doi.org/10.1007/s10236-014-0740-7
+#
+# Examples:
+# from olas.estela import calc, plot
+# calc with constant spread: estelas = calc(&#34;/data_local/tmp/glob2018??01T00.nc&#34;, 46, -131, mask=&#34;MAPSTA&#34;)
+# calc with spread: estelas = calc(&#34;/data_local/tmp/ww3.glob_24m.2010??.nc&#34;, 46, -131, &#34;hs.&#34;, &#34;tp.&#34;, &#34;th.&#34;, &#34;si.&#34;, &#34;MAPSTA&#34;)
+# plot energy maps: plot(estelas, outdir=&#34;.&#34;)
+# plot gain/loss maps: plot(estelas, gainloss=True, outdir=&#34;.&#34;)
+
+import argparse
+import datetime
+import os
+import re
+from glob import glob
+
+import numpy as np
+import xarray as xr
+from cartopy import crs as ccrs
+from cartopy.io import shapereader as shpreader
+from dask.diagnostics import ProgressBar
+from matplotlib import pyplot as plt
+from scipy import special
+
+d2r = np.pi / 180.0
+
+
+def parser():
+    parser = argparse.ArgumentParser(description=&#34;Calculate estelas&#34;)
+    parser.add_argument(&#34;datafiles&#34;, type=str, help=&#34;Files with wave data&#34;)
+    parser.add_argument(&#34;lat0&#34;, type=float, help=&#34;Latitude of the target point&#34;)
+    parser.add_argument(&#34;lon0&#34;, type=float, help=&#34;Longitude of the target point&#34;)
+    parser.add_argument(&#34;--hs&#34;, type=str, default=&#34;hs&#34;, help=&#34;Significant wave height fieldnames&#34;)
+    parser.add_argument(&#34;--tp&#34;, type=str, default=&#34;tp&#34;, help=&#34;Peak period fieldnames&#34;)
+    parser.add_argument(&#34;--dp&#34;, type=str, default=&#34;dp&#34;, help=&#34;Wave direction fieldnames&#34;)
+    parser.add_argument(&#34;--si&#34;, default=20, help=&#34;Directional spread fieldnames&#34;)
+    parser.add_argument(&#34;-m&#34;, &#34;--mask&#34;, type=str, default=None, help=&#34;mask fieldname&#34;)
+    parser.add_argument(&#34;-g&#34;, &#34;--groupers&#34;, nargs=&#34;*&#34;, default=None, help=&#34;groupers for results&#34;)
+    parser.add_argument(&#34;-p&#34;, &#34;--proj&#34;, type=str, default=None, help=&#34;projection&#34;)
+    parser.add_argument(&#34;-o&#34;, &#34;--outdir&#34;, type=str, default=None, help=&#34;output directory&#34;)
+    args = parser.parse_args()
+
+    estelas = calc(args.datafiles, args.lat0, args.lon0, args.hs, args.tp, args.dp, args.si, args.mask, args.groupers)
+    plot(estelas, groupers=args.groupers, proj=args.proj, outdir=args.outdir)
+    plt.show()
+
+
+def calc(datafiles, lat0, lon0, hs=&#34;phs.&#34;, tp=&#34;ptp.&#34;, dp=&#34;pdir.&#34;, si=20, mask=None, groupers=None):
+    &#34;&#34;&#34;Calculate ESTELA dataset for a target point.
+
+    Args:
+        datafiles (str/list): Regular expression or list of data files.
+        lat0 (float): Latitude of target point.
+        lon0 (float): Longitude of target point.
+        hs (str/list): regex/list of hs field names in datafiles
+        tp (str/list): regex/list of tp field names in datafiles
+        dp (str/list): regex/list of dp field names in datafiles
+        si (str/list/float): Value or regex/list of directional spread field names
+        mask (str): Information of mask
+        groupers (list, optional): values used to group the results.
+
+    Returns:
+        xr.dataset: ESTELA dataset with F and traveltime fields.
+    &#34;&#34;&#34;
+    if isinstance(datafiles, str):
+        flist = sorted(glob(datafiles))
+    else:
+        flist = sorted(datafiles)
+    print(f&#34;{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {len(flist)} files&#34;)
+    groupers = get_groupers(groupers)
+
+    lon0 %= 360.0
+    lat0_arr = xr.DataArray(dims=&#34;site&#34;, data=np.array(lat0).flatten())
+    lon0_arr = xr.DataArray(dims=&#34;site&#34;, data=np.array(lon0).flatten())
+    sites = xr.Dataset(dict(lat0=lat0_arr, lon0=lon0_arr))
+    # TODO calculate several sites at the same time. Problematic memory usage but much faster (if data reading is slow)
+
+    dsf = xr.open_mfdataset(flist[0])
+    spec_info = dict(hs=hs, tp=tp, dp=dp, si=si)
+    for k, value in spec_info.items():
+        if isinstance(value, str):  # expand regular expressions
+            spec_info[k] = sorted(v for v in dsf.variables if re.fullmatch(value, v))
+    npart = len(spec_info[&#34;hs&#34;])
+    num_si = isinstance(spec_info[&#34;si&#34;], (int, float))
+    print(spec_info)
+
+    # geographical constants and initialization
+    dists, bearings = dist_and_bearing(lat0, dsf.latitude, lon0, dsf.longitude)
+    dist_m = dists * 6371000 * d2r
+    va = 1.4 * 10 ** -5
+    rowroa = 1 / 0.0013
+    # sigma = 2 * np.pi / ds.tp  # Lemax = (rowroa * 9.81 ** 2) / (4 * sigma ** 3 * (2 * va * sigma) ** 0.5)
+    k_dissipation = (
+        -dist_m / (rowroa * 9.81 ** 2) * 4 * (2 * va) ** 0.5 * (2 * np.pi) ** 3.5
+    )  # coef_dissipation = np.exp(-dist_m / Lemax)
+    th1_sin = np.sin(0.5 * bearings * d2r)
+    th1_cos = np.cos(0.5 * bearings * d2r)
+
+    if isinstance(mask, str):
+        mask = dsf[mask]
+    vland = geographic_mask(lat0, lon0, dists, bearings, mask=mask)
+
+    # S and Stp calculations
+    si_calculations = True
+    grouped_results = dict()
+    for f in flist:
+        print(f&#34;{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {f}&#34;)
+
+        dsf = xr.open_mfdataset(f).chunk(&#34;auto&#34;)
+        file_results = xr.Dataset()
+        for ipart in range(npart):
+            hs = dsf[spec_info[&#34;hs&#34;][ipart]]
+            tp = dsf[spec_info[&#34;tp&#34;][ipart]]
+            dp = dsf[spec_info[&#34;dp&#34;][ipart]]
+
+            coef_dissipation = np.exp(k_dissipation * (tp ** -3.5))
+
+            if si_calculations:
+                if num_si:  # don&#39;t repeat calculations
+                    si = spec_info[&#34;si&#34;]
+                    si_calculations = False
+                else:
+                    si = dsf[spec_info[&#34;si&#34;][ipart]].clip(15., 45.)
+                    # TODO find better solution to avoid invalid A2 values
+
+                s = (2 / (si * np.pi / 180) ** 2) - 1
+                A2 = special.gamma(s + 1) / (special.gamma(s + 0.5) * 2 * np.pi ** 0.5)
+                # TODO find faster spread approach (use normal distribution or table?)
+                coef_spread = A2 * np.pi / 180  # deg
+                # TODO review coef_spread units and compare with wavespectra
+
+            th2 = 0.5 * dp * d2r
+            coef_direction = abs(np.cos(th2) * th1_cos + np.sin(th2) * th1_sin) ** (
+                2.0 * s
+            )
+
+            Spart_th = hs ** 2 / 16 * coef_dissipation * coef_direction * coef_spread
+            file_results[&#34;S_th&#34;] = file_results.get(&#34;S_th&#34;, 0) + (Spart_th)
+            file_results[&#34;Stp_th&#34;] = file_results.get(&#34;Stp_th&#34;, 0) + (tp * Spart_th)
+
+        with ProgressBar():
+            file_results.load()
+
+        for grouper in groupers:
+            if grouper == &#34;ALL&#34;:
+                grouped_results[&#34;ALL&#34;] = grouped_results.get(
+                    &#34;ALL&#34;, 0
+                ) + file_results.sum(&#34;time&#34;).assign(ntime=len(dsf.time))
+            else:
+                for k, v in file_results.groupby(grouper):
+                    kstr = f&#34;m{k:02g}&#34; if grouper == &#34;time.month&#34; else str(k)
+                    grouped_results[kstr] = grouped_results.get(kstr, 0) + v.sum(
+                        &#34;time&#34;
+                    ).assign(ntime=len(v.time))
+
+    # Saving estelas
+    time = xr.Variable(data=sorted(grouped_results), dims=&#34;time&#34;)
+    estelas_aux = xr.concat([grouped_results[k] for k in time.values], dim=time)
+    # TODO Te instead of Tp.  tp_te_ratio = 1.1 ?
+    Fdeg = (
+        1.025 * 9.81 * estelas_aux[&#34;Stp_th&#34;] / estelas_aux[&#34;ntime&#34;] * 9.81 / 4 / np.pi
+    )
+    cg_mps = (estelas_aux[&#34;Stp_th&#34;] / estelas_aux[&#34;S_th&#34;]) * 9.81 / 4 / np.pi
+    estelas_dict = {&#34;F&#34;: 360 * Fdeg, &#34;traveltime&#34;: (3600 * 24 * cg_mps / dist_m)**-1}  # dimensions order tyx
+    estelas = xr.Dataset(estelas_dict).where(vland, np.nan).merge(sites)
+    estelas.F.attrs[&#34;units&#34;] = &#34;$\\frac{kW}{m\\circ}$&#34;
+    estelas.traveltime.attrs[&#34;units&#34;] = &#34;days&#34;
+    estelas.attrs[&#34;start_time&#34;] = str(xr.open_mfdataset(flist[0]).time[0].values)
+    estelas.attrs[&#34;end_time&#34;] = str(xr.open_mfdataset(flist[-1]).time[-1].values)
+    return estelas
+
+
+def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cmap=None, figsize=[25, 10], outdir=None):
+    &#34;&#34;&#34;Plot ESTELA maps for one or several time periods
+
+    Args:
+        estelas (xr.dataset): ESTELA dataset with F and traveltime fields.
+        groupers (list, optional): Values used to group the results.
+        gainloss (boolean, optional): Flag to plot maps of gain/loss of energy.
+        proj (cartopy.crs, optional): Map projection. Defaults to PlateCarree.
+        cmap (str, optional): Colormap. Defaults to &#34;plasma&#34;.
+        figsize (list, optional): Figure size. Defaults to [25,10].
+        outdir (str): Path to save figures. Defaults to None.
+
+    Returns:
+        figs: list of figure handles
+    &#34;&#34;&#34;
+    lat0 = float(estelas.lat0)
+    lon0 = float(estelas.lon0)
+    gc = great_circles(lat0, lon0, ngc=16)
+    c1day = dict(levels=np.linspace(1, 30, 30), colors=&#34;grey&#34;, linewidths=0.5)
+    c3day = dict(levels=np.linspace(3, 30, 10), colors=&#34;black&#34;, linewidths=1.0)
+    # TODO: type of plots where traveltimes are included should not be hardcoded
+
+    if proj is None:
+        # proj = ccrs.Orthographic(lon0, lat0)
+        proj = ccrs.PlateCarree(central_longitude=lon0)
+
+    if cmap is None:
+        cmap = &#34;seismic&#34; if gainloss else &#34;inferno&#34;
+
+    figs = []
+    groupers = get_groupers(groupers)
+    for grouper in groupers:
+        if grouper == &#34;time.season&#34;:
+            time = [&#34;DJF&#34;, &#34;MAM&#34;, &#34;JJA&#34;, &#34;SON&#34;]
+        elif grouper == &#34;time.month&#34;:
+            time = [f&#34;m{m:02g}&#34; for m in range(1, 13)]
+        else:
+            time = [grouper]
+
+        ds = estelas.sel(time=[t for t in time if t in estelas.time])
+        aux = [ds.isel(time=0).assign(time=t)[&#34;F&#34;] * np.nan for t in time if t not in estelas.time]
+        F = xr.concat([ds[&#34;F&#34;]] + aux, dim=&#34;time&#34;).sel(time=time)
+        F = F.dropna(&#34;longitude&#34;, how=&#34;all&#34;).dropna(&#34;latitude&#34;, how=&#34;all&#34;)
+
+        if gainloss:
+            # TODO: change gainloss argument to fieldname with F as default and calculate Fgl in calc
+            ngc = 360
+            polar_grid = great_circles(lat0, lon0, ngc)
+            polarF = F.interp(polar_grid)
+            dist_midpoints = (polarF.distance.values[1:] + polarF.distance.values[:-1]) / 2
+            cosd = np.cos(polarF.distance * d2r)
+            S = 4 * np.pi * 6371**2 / ngc * abs(cosd.diff(&#34;distance&#34;)) / 2  # km**2
+            incF = (polarF.diff(&#34;distance&#34;) / S).assign_coords(distance=dist_midpoints)
+            F *= np.nan  # empty pcolors, using contourf
+            F.attrs[&#34;standard_name&#34;] = &#34;${\\Delta}F$&#34;
+            F.attrs[&#34;units&#34;] = &#34;$\\frac{kW}{m\\circ{km^2}}$&#34;  # colorbar defined for pcolors
+        else:
+            F = 360 * F
+            F.attrs[&#34;units&#34;] = &#34;$360\\times\\frac{kW}{m\\circ}$&#34;
+
+        print(f&#34;Plotting estelas for time={time} from {ds}\n&#34;)
+        # TODO refactor plotting and choose sensible colorbar limits
+        if len(time) == 1:
+            fig = plt.figure(figsize=figsize)
+            plt.axes(projection=proj)
+            F.plot(
+                transform=ccrs.PlateCarree(),
+                cmap=cmap,
+            )
+        else:
+            g = F.plot(
+                transform=ccrs.PlateCarree(),
+                cmap=cmap,
+                col=&#34;time&#34;,
+                col_wrap=2 if len(time) &lt;= 4 else 3,
+                subplot_kws={&#34;projection&#34;: proj},
+            )
+            fig = g.fig
+            fig.set_figwidth(figsize[0])
+            fig.set_figheight(figsize[1])
+
+        for iax, ax in enumerate(fig.axes[:-1]):
+            extent = ax.get_extent()
+            if time[iax] not in ds.time:
+                continue
+
+            if gainloss:
+                Fi = incF.sel(time=time[iax])
+                clim = float(abs(Fi).quantile(0.95))
+                p = ax.contourf(
+                    incF.longitude,
+                    incF.latitude,
+                    Fi.clip(-clim, clim),
+                    transform=ccrs.PlateCarree(),
+                    levels=15,
+                    cmap=cmap,
+                )
+
+            ttime = ds.traveltime.sel(time=time[iax])
+            for ic, c_args in enumerate([c1day, c3day]):
+                p = ttime.plot.contour(
+                    ax=ax,
+                    transform=ccrs.PlateCarree(),
+                    linestyles=&#34;solid&#34;,
+                    add_labels=False,
+                    zorder=2*(1+ic),
+                    **c_args,
+                )
+            if len(time) == 1:
+                ax.clabel(p, c3day[&#34;levels&#34;], colors=&#34;black&#34;, fmt=&#34;%.0fdays&#34;)
+                ax.plot(gc.longitude, gc.latitude, &#34;.r&#34;, markersize=1, transform=ccrs.PlateCarree())
+
+            if set_global:
+                ax.set_global()
+            else:
+                ax.set_extent(extent, crs=proj)
+            ax.coastlines()
+            ax.stock_img()
+            ax.plot(lon0, lat0, &#34;ok&#34;, transform=ccrs.PlateCarree())
+
+        fig.suptitle(f&#34;[{ds.start_time[:10]} - {ds.end_time[:10]}]&#34;)
+        figs.append(fig)
+        if outdir is not None:
+            maptype = &#34;gainloss&#34; if gainloss else &#34;base&#34;
+            fig.savefig(os.path.join(outdir, f&#34;estela_{grouper}_{maptype}.png&#34;))
+    return figs
+
+
+def great_circles(lat1, lon1, ngc=16):
+    &#34;&#34;&#34; Calculate great circles
+
+    Args:
+        lat1 (float): Latitude origin point
+        lon1 (float): Longitude origin point
+        ngc (int, optional): Number of great circles. Defaults to 16.
+
+    Returns:
+        xr.Dataset: dataset with distance and bearing dimensions
+    &#34;&#34;&#34;
+    lat1_r = float(lat1) * d2r
+    lon1_r = float(lon1) * d2r
+    dist_r = xr.DataArray(dims=&#34;distance&#34;, data=np.linspace(0.5, 179.5, 180) * d2r)
+    brng_r = xr.DataArray(dims=&#34;bearing&#34;, data=np.linspace(0, 360, ngc+1)[:-1] * d2r)
+
+    sin_lat1 = np.sin(lat1_r)
+    cos_lat1 = np.cos(lat1_r)
+    sin_dR = np.sin(dist_r)
+    cos_dR = np.cos(dist_r)
+
+    lat2 = np.arcsin(sin_lat1*cos_dR + cos_lat1*sin_dR*np.cos(brng_r))
+    lon2 = lon1_r + np.arctan2(np.sin(brng_r)*sin_dR*cos_lat1, cos_dR-sin_lat1*np.sin(lat2))
+    gc = xr.Dataset({&#34;latitude&#34;: lat2 / d2r, &#34;longitude&#34;: (lon2 / d2r % 360).transpose()})
+    gc[&#34;distance&#34;] = dist_r / d2r
+    gc[&#34;bearing&#34;] = brng_r / d2r
+    return gc
+
+
+def dist_and_bearing(lat1, lat2, lon1, lon2):
+    &#34;&#34;&#34;Calculate distances and bearings from one point to others
+
+    Args:
+        lat1 (float): Latitude origin point
+        lat2 (float/array): Latitude end points
+        lon1 (float): Longitude origin point
+        lon2 (float/array): Longitude end points
+
+    Returns:
+        float/array: distances and bearings in degrees
+    &#34;&#34;&#34;
+    lat1_r = lat1 * d2r
+    lat2_r = lat2 * d2r
+    latdif_r = (lat2 - lat1) * d2r
+    londif_r = (lon2 - lon1) * d2r
+
+    a = np.sin(latdif_r / 2) * np.sin(latdif_r / 2) + np.cos(lat1_r) * np.cos(
+        lat2_r
+    ) * np.sin(londif_r / 2) * np.sin(londif_r / 2)
+    a = a.clip(0., 1.) # to avoid warning for a=1.0000001,
+    degdist = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)) / d2r
+
+    y = np.sin(londif_r) * np.cos(lat2_r)
+    x = np.cos(lat1_r) * np.sin(lat2_r) - np.sin(lat1_r) * np.cos(lat2_r) * np.cos(londif_r)
+    brng = (np.arctan2(y, x) / d2r).transpose() % 360
+    return (degdist, brng)
+
+
+def geographic_mask(lat0, lon0, dists, bearings, mask=None):
+    # TODO this approach for geographic_mask is not clean enough
+    &#34;&#34;&#34;Check the great circles points to find points not blocked by land
+
+    Args:
+        lat0 (float): Latitude origin point
+        lon0 (float): Longitude origin point
+        dists (array): Distances
+        bearings (array): Bearings
+        mask (array, optional): mask where ocean points are True
+
+    Returns:
+        array: points not blocked by land
+    &#34;&#34;&#34;
+
+    def update_dmax(dmax, dists, bearings):
+        ibearings = np.trunc(bearings % 360).astype(int)
+        for d, b in zip(dists, ibearings):
+            dmax[b] = min(dmax[b], d)
+        return dmax
+
+    dmax = 180 * np.ones(360)
+    if mask is None:
+        mask = xr.ones_like(dists)
+    mask = mask.where(dists &gt; 0, np.nan)
+
+    valid = (mask != 1).values.flatten()
+    d_arr = dists.values.flatten()[valid]
+    b_arr = bearings.values.flatten()[valid]
+    dmax = update_dmax(dmax, d_arr, b_arr)
+
+    # shpfilename = shpreader.gshhs(scale=&#39;c&#39;, level=1)
+    shpfilename = shpreader.natural_earth(
+        resolution=&#34;110m&#34;, category=&#34;physical&#34;, name=&#34;coastline&#34;
+    )
+    coastlines = shpreader.Reader(shpfilename).records()
+    for c in coastlines:
+        lonland, latland = map(np.array, zip(*c.geometry.coords))
+        distland, bearingland = dist_and_bearing(lat0, latland, lon0, lonland)
+        dmax = update_dmax(dmax, distland, bearingland)
+    vland = dists &lt; dmax[np.trunc(bearings % 360).astype(int)]
+    return vland
+
+
+def get_groupers(groupers):
+    &#34;&#34;&#34; Get default groupers if the input is None
+
+    Args:
+        groupers (list): groupers for calc and plot functions or None
+
+    Returns:
+        list: groupers for calc and plot functions
+    &#34;&#34;&#34;
+    if groupers is None:
+        groupers = [&#34;ALL&#34;, &#34;time.season&#34;, &#34;time.month&#34;]
+    return groupers
+
+
+if __name__ == &#34;__main__&#34;:
+    parser()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="olas.estela.calc"><code class="name flex">
+<span>def <span class="ident">calc</span></span>(<span>datafiles, lat0, lon0, hs='phs.', tp='ptp.', dp='pdir.', si=20, mask=None, groupers=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate ESTELA dataset for a target point.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>datafiles (str/list): Regular expression or list of data files.</dt>
+<dt><strong><code>lat0</code></strong> :&ensp;<code>float</code></dt>
+<dd>Latitude of target point.</dd>
+<dt><strong><code>lon0</code></strong> :&ensp;<code>float</code></dt>
+<dd>Longitude of target point.</dd>
+<dt>hs (str/list): regex/list of hs field names in datafiles</dt>
+<dt>tp (str/list): regex/list of tp field names in datafiles</dt>
+<dt>dp (str/list): regex/list of dp field names in datafiles</dt>
+<dt>si (str/list/float): Value or regex/list of directional spread field names</dt>
+<dt><strong><code>mask</code></strong> :&ensp;<code>str</code></dt>
+<dd>Information of mask</dd>
+<dt><strong><code>groupers</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>values used to group the results.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.dataset</code></dt>
+<dd>ESTELA dataset with F and traveltime fields.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calc(datafiles, lat0, lon0, hs=&#34;phs.&#34;, tp=&#34;ptp.&#34;, dp=&#34;pdir.&#34;, si=20, mask=None, groupers=None):
+    &#34;&#34;&#34;Calculate ESTELA dataset for a target point.
+
+    Args:
+        datafiles (str/list): Regular expression or list of data files.
+        lat0 (float): Latitude of target point.
+        lon0 (float): Longitude of target point.
+        hs (str/list): regex/list of hs field names in datafiles
+        tp (str/list): regex/list of tp field names in datafiles
+        dp (str/list): regex/list of dp field names in datafiles
+        si (str/list/float): Value or regex/list of directional spread field names
+        mask (str): Information of mask
+        groupers (list, optional): values used to group the results.
+
+    Returns:
+        xr.dataset: ESTELA dataset with F and traveltime fields.
+    &#34;&#34;&#34;
+    if isinstance(datafiles, str):
+        flist = sorted(glob(datafiles))
+    else:
+        flist = sorted(datafiles)
+    print(f&#34;{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {len(flist)} files&#34;)
+    groupers = get_groupers(groupers)
+
+    lon0 %= 360.0
+    lat0_arr = xr.DataArray(dims=&#34;site&#34;, data=np.array(lat0).flatten())
+    lon0_arr = xr.DataArray(dims=&#34;site&#34;, data=np.array(lon0).flatten())
+    sites = xr.Dataset(dict(lat0=lat0_arr, lon0=lon0_arr))
+    # TODO calculate several sites at the same time. Problematic memory usage but much faster (if data reading is slow)
+
+    dsf = xr.open_mfdataset(flist[0])
+    spec_info = dict(hs=hs, tp=tp, dp=dp, si=si)
+    for k, value in spec_info.items():
+        if isinstance(value, str):  # expand regular expressions
+            spec_info[k] = sorted(v for v in dsf.variables if re.fullmatch(value, v))
+    npart = len(spec_info[&#34;hs&#34;])
+    num_si = isinstance(spec_info[&#34;si&#34;], (int, float))
+    print(spec_info)
+
+    # geographical constants and initialization
+    dists, bearings = dist_and_bearing(lat0, dsf.latitude, lon0, dsf.longitude)
+    dist_m = dists * 6371000 * d2r
+    va = 1.4 * 10 ** -5
+    rowroa = 1 / 0.0013
+    # sigma = 2 * np.pi / ds.tp  # Lemax = (rowroa * 9.81 ** 2) / (4 * sigma ** 3 * (2 * va * sigma) ** 0.5)
+    k_dissipation = (
+        -dist_m / (rowroa * 9.81 ** 2) * 4 * (2 * va) ** 0.5 * (2 * np.pi) ** 3.5
+    )  # coef_dissipation = np.exp(-dist_m / Lemax)
+    th1_sin = np.sin(0.5 * bearings * d2r)
+    th1_cos = np.cos(0.5 * bearings * d2r)
+
+    if isinstance(mask, str):
+        mask = dsf[mask]
+    vland = geographic_mask(lat0, lon0, dists, bearings, mask=mask)
+
+    # S and Stp calculations
+    si_calculations = True
+    grouped_results = dict()
+    for f in flist:
+        print(f&#34;{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {f}&#34;)
+
+        dsf = xr.open_mfdataset(f).chunk(&#34;auto&#34;)
+        file_results = xr.Dataset()
+        for ipart in range(npart):
+            hs = dsf[spec_info[&#34;hs&#34;][ipart]]
+            tp = dsf[spec_info[&#34;tp&#34;][ipart]]
+            dp = dsf[spec_info[&#34;dp&#34;][ipart]]
+
+            coef_dissipation = np.exp(k_dissipation * (tp ** -3.5))
+
+            if si_calculations:
+                if num_si:  # don&#39;t repeat calculations
+                    si = spec_info[&#34;si&#34;]
+                    si_calculations = False
+                else:
+                    si = dsf[spec_info[&#34;si&#34;][ipart]].clip(15., 45.)
+                    # TODO find better solution to avoid invalid A2 values
+
+                s = (2 / (si * np.pi / 180) ** 2) - 1
+                A2 = special.gamma(s + 1) / (special.gamma(s + 0.5) * 2 * np.pi ** 0.5)
+                # TODO find faster spread approach (use normal distribution or table?)
+                coef_spread = A2 * np.pi / 180  # deg
+                # TODO review coef_spread units and compare with wavespectra
+
+            th2 = 0.5 * dp * d2r
+            coef_direction = abs(np.cos(th2) * th1_cos + np.sin(th2) * th1_sin) ** (
+                2.0 * s
+            )
+
+            Spart_th = hs ** 2 / 16 * coef_dissipation * coef_direction * coef_spread
+            file_results[&#34;S_th&#34;] = file_results.get(&#34;S_th&#34;, 0) + (Spart_th)
+            file_results[&#34;Stp_th&#34;] = file_results.get(&#34;Stp_th&#34;, 0) + (tp * Spart_th)
+
+        with ProgressBar():
+            file_results.load()
+
+        for grouper in groupers:
+            if grouper == &#34;ALL&#34;:
+                grouped_results[&#34;ALL&#34;] = grouped_results.get(
+                    &#34;ALL&#34;, 0
+                ) + file_results.sum(&#34;time&#34;).assign(ntime=len(dsf.time))
+            else:
+                for k, v in file_results.groupby(grouper):
+                    kstr = f&#34;m{k:02g}&#34; if grouper == &#34;time.month&#34; else str(k)
+                    grouped_results[kstr] = grouped_results.get(kstr, 0) + v.sum(
+                        &#34;time&#34;
+                    ).assign(ntime=len(v.time))
+
+    # Saving estelas
+    time = xr.Variable(data=sorted(grouped_results), dims=&#34;time&#34;)
+    estelas_aux = xr.concat([grouped_results[k] for k in time.values], dim=time)
+    # TODO Te instead of Tp.  tp_te_ratio = 1.1 ?
+    Fdeg = (
+        1.025 * 9.81 * estelas_aux[&#34;Stp_th&#34;] / estelas_aux[&#34;ntime&#34;] * 9.81 / 4 / np.pi
+    )
+    cg_mps = (estelas_aux[&#34;Stp_th&#34;] / estelas_aux[&#34;S_th&#34;]) * 9.81 / 4 / np.pi
+    estelas_dict = {&#34;F&#34;: 360 * Fdeg, &#34;traveltime&#34;: (3600 * 24 * cg_mps / dist_m)**-1}  # dimensions order tyx
+    estelas = xr.Dataset(estelas_dict).where(vland, np.nan).merge(sites)
+    estelas.F.attrs[&#34;units&#34;] = &#34;$\\frac{kW}{m\\circ}$&#34;
+    estelas.traveltime.attrs[&#34;units&#34;] = &#34;days&#34;
+    estelas.attrs[&#34;start_time&#34;] = str(xr.open_mfdataset(flist[0]).time[0].values)
+    estelas.attrs[&#34;end_time&#34;] = str(xr.open_mfdataset(flist[-1]).time[-1].values)
+    return estelas</code></pre>
+</details>
+</dd>
+<dt id="olas.estela.dist_and_bearing"><code class="name flex">
+<span>def <span class="ident">dist_and_bearing</span></span>(<span>lat1, lat2, lon1, lon2)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate distances and bearings from one point to others</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>lat1</code></strong> :&ensp;<code>float</code></dt>
+<dd>Latitude origin point</dd>
+<dt>lat2 (float/array): Latitude end points</dt>
+<dt><strong><code>lon1</code></strong> :&ensp;<code>float</code></dt>
+<dd>Longitude origin point</dd>
+</dl>
+<p>lon2 (float/array): Longitude end points</p>
+<h2 id="returns">Returns</h2>
+<p>float/array: distances and bearings in degrees</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dist_and_bearing(lat1, lat2, lon1, lon2):
+    &#34;&#34;&#34;Calculate distances and bearings from one point to others
+
+    Args:
+        lat1 (float): Latitude origin point
+        lat2 (float/array): Latitude end points
+        lon1 (float): Longitude origin point
+        lon2 (float/array): Longitude end points
+
+    Returns:
+        float/array: distances and bearings in degrees
+    &#34;&#34;&#34;
+    lat1_r = lat1 * d2r
+    lat2_r = lat2 * d2r
+    latdif_r = (lat2 - lat1) * d2r
+    londif_r = (lon2 - lon1) * d2r
+
+    a = np.sin(latdif_r / 2) * np.sin(latdif_r / 2) + np.cos(lat1_r) * np.cos(
+        lat2_r
+    ) * np.sin(londif_r / 2) * np.sin(londif_r / 2)
+    a = a.clip(0., 1.) # to avoid warning for a=1.0000001,
+    degdist = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)) / d2r
+
+    y = np.sin(londif_r) * np.cos(lat2_r)
+    x = np.cos(lat1_r) * np.sin(lat2_r) - np.sin(lat1_r) * np.cos(lat2_r) * np.cos(londif_r)
+    brng = (np.arctan2(y, x) / d2r).transpose() % 360
+    return (degdist, brng)</code></pre>
+</details>
+</dd>
+<dt id="olas.estela.geographic_mask"><code class="name flex">
+<span>def <span class="ident">geographic_mask</span></span>(<span>lat0, lon0, dists, bearings, mask=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Check the great circles points to find points not blocked by land</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>lat0</code></strong> :&ensp;<code>float</code></dt>
+<dd>Latitude origin point</dd>
+<dt><strong><code>lon0</code></strong> :&ensp;<code>float</code></dt>
+<dd>Longitude origin point</dd>
+<dt><strong><code>dists</code></strong> :&ensp;<code>array</code></dt>
+<dd>Distances</dd>
+<dt><strong><code>bearings</code></strong> :&ensp;<code>array</code></dt>
+<dd>Bearings</dd>
+<dt><strong><code>mask</code></strong> :&ensp;<code>array</code>, optional</dt>
+<dd>mask where ocean points are True</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>array</code></dt>
+<dd>points not blocked by land</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def geographic_mask(lat0, lon0, dists, bearings, mask=None):
+    # TODO this approach for geographic_mask is not clean enough
+    &#34;&#34;&#34;Check the great circles points to find points not blocked by land
+
+    Args:
+        lat0 (float): Latitude origin point
+        lon0 (float): Longitude origin point
+        dists (array): Distances
+        bearings (array): Bearings
+        mask (array, optional): mask where ocean points are True
+
+    Returns:
+        array: points not blocked by land
+    &#34;&#34;&#34;
+
+    def update_dmax(dmax, dists, bearings):
+        ibearings = np.trunc(bearings % 360).astype(int)
+        for d, b in zip(dists, ibearings):
+            dmax[b] = min(dmax[b], d)
+        return dmax
+
+    dmax = 180 * np.ones(360)
+    if mask is None:
+        mask = xr.ones_like(dists)
+    mask = mask.where(dists &gt; 0, np.nan)
+
+    valid = (mask != 1).values.flatten()
+    d_arr = dists.values.flatten()[valid]
+    b_arr = bearings.values.flatten()[valid]
+    dmax = update_dmax(dmax, d_arr, b_arr)
+
+    # shpfilename = shpreader.gshhs(scale=&#39;c&#39;, level=1)
+    shpfilename = shpreader.natural_earth(
+        resolution=&#34;110m&#34;, category=&#34;physical&#34;, name=&#34;coastline&#34;
+    )
+    coastlines = shpreader.Reader(shpfilename).records()
+    for c in coastlines:
+        lonland, latland = map(np.array, zip(*c.geometry.coords))
+        distland, bearingland = dist_and_bearing(lat0, latland, lon0, lonland)
+        dmax = update_dmax(dmax, distland, bearingland)
+    vland = dists &lt; dmax[np.trunc(bearings % 360).astype(int)]
+    return vland</code></pre>
+</details>
+</dd>
+<dt id="olas.estela.get_groupers"><code class="name flex">
+<span>def <span class="ident">get_groupers</span></span>(<span>groupers)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get default groupers if the input is None</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>groupers</code></strong> :&ensp;<code>list</code></dt>
+<dd>groupers for calc and plot functions or None</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>groupers for calc and plot functions</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_groupers(groupers):
+    &#34;&#34;&#34; Get default groupers if the input is None
+
+    Args:
+        groupers (list): groupers for calc and plot functions or None
+
+    Returns:
+        list: groupers for calc and plot functions
+    &#34;&#34;&#34;
+    if groupers is None:
+        groupers = [&#34;ALL&#34;, &#34;time.season&#34;, &#34;time.month&#34;]
+    return groupers</code></pre>
+</details>
+</dd>
+<dt id="olas.estela.great_circles"><code class="name flex">
+<span>def <span class="ident">great_circles</span></span>(<span>lat1, lon1, ngc=16)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate great circles</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>lat1</code></strong> :&ensp;<code>float</code></dt>
+<dd>Latitude origin point</dd>
+<dt><strong><code>lon1</code></strong> :&ensp;<code>float</code></dt>
+<dd>Longitude origin point</dd>
+<dt><strong><code>ngc</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of great circles. Defaults to 16.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>xr.Dataset</code></dt>
+<dd>dataset with distance and bearing dimensions</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def great_circles(lat1, lon1, ngc=16):
+    &#34;&#34;&#34; Calculate great circles
+
+    Args:
+        lat1 (float): Latitude origin point
+        lon1 (float): Longitude origin point
+        ngc (int, optional): Number of great circles. Defaults to 16.
+
+    Returns:
+        xr.Dataset: dataset with distance and bearing dimensions
+    &#34;&#34;&#34;
+    lat1_r = float(lat1) * d2r
+    lon1_r = float(lon1) * d2r
+    dist_r = xr.DataArray(dims=&#34;distance&#34;, data=np.linspace(0.5, 179.5, 180) * d2r)
+    brng_r = xr.DataArray(dims=&#34;bearing&#34;, data=np.linspace(0, 360, ngc+1)[:-1] * d2r)
+
+    sin_lat1 = np.sin(lat1_r)
+    cos_lat1 = np.cos(lat1_r)
+    sin_dR = np.sin(dist_r)
+    cos_dR = np.cos(dist_r)
+
+    lat2 = np.arcsin(sin_lat1*cos_dR + cos_lat1*sin_dR*np.cos(brng_r))
+    lon2 = lon1_r + np.arctan2(np.sin(brng_r)*sin_dR*cos_lat1, cos_dR-sin_lat1*np.sin(lat2))
+    gc = xr.Dataset({&#34;latitude&#34;: lat2 / d2r, &#34;longitude&#34;: (lon2 / d2r % 360).transpose()})
+    gc[&#34;distance&#34;] = dist_r / d2r
+    gc[&#34;bearing&#34;] = brng_r / d2r
+    return gc</code></pre>
+</details>
+</dd>
+<dt id="olas.estela.parser"><code class="name flex">
+<span>def <span class="ident">parser</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parser():
+    parser = argparse.ArgumentParser(description=&#34;Calculate estelas&#34;)
+    parser.add_argument(&#34;datafiles&#34;, type=str, help=&#34;Files with wave data&#34;)
+    parser.add_argument(&#34;lat0&#34;, type=float, help=&#34;Latitude of the target point&#34;)
+    parser.add_argument(&#34;lon0&#34;, type=float, help=&#34;Longitude of the target point&#34;)
+    parser.add_argument(&#34;--hs&#34;, type=str, default=&#34;hs&#34;, help=&#34;Significant wave height fieldnames&#34;)
+    parser.add_argument(&#34;--tp&#34;, type=str, default=&#34;tp&#34;, help=&#34;Peak period fieldnames&#34;)
+    parser.add_argument(&#34;--dp&#34;, type=str, default=&#34;dp&#34;, help=&#34;Wave direction fieldnames&#34;)
+    parser.add_argument(&#34;--si&#34;, default=20, help=&#34;Directional spread fieldnames&#34;)
+    parser.add_argument(&#34;-m&#34;, &#34;--mask&#34;, type=str, default=None, help=&#34;mask fieldname&#34;)
+    parser.add_argument(&#34;-g&#34;, &#34;--groupers&#34;, nargs=&#34;*&#34;, default=None, help=&#34;groupers for results&#34;)
+    parser.add_argument(&#34;-p&#34;, &#34;--proj&#34;, type=str, default=None, help=&#34;projection&#34;)
+    parser.add_argument(&#34;-o&#34;, &#34;--outdir&#34;, type=str, default=None, help=&#34;output directory&#34;)
+    args = parser.parse_args()
+
+    estelas = calc(args.datafiles, args.lat0, args.lon0, args.hs, args.tp, args.dp, args.si, args.mask, args.groupers)
+    plot(estelas, groupers=args.groupers, proj=args.proj, outdir=args.outdir)
+    plt.show()</code></pre>
+</details>
+</dd>
+<dt id="olas.estela.plot"><code class="name flex">
+<span>def <span class="ident">plot</span></span>(<span>estelas, groupers=None, gainloss=False, proj=None, set_global=False, cmap=None, figsize=[25, 10], outdir=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot ESTELA maps for one or several time periods</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>estelas</code></strong> :&ensp;<code>xr.dataset</code></dt>
+<dd>ESTELA dataset with F and traveltime fields.</dd>
+<dt><strong><code>groupers</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>Values used to group the results.</dd>
+<dt><strong><code>gainloss</code></strong> :&ensp;<code>boolean</code>, optional</dt>
+<dd>Flag to plot maps of gain/loss of energy.</dd>
+<dt><strong><code>proj</code></strong> :&ensp;<code>cartopy.crs</code>, optional</dt>
+<dd>Map projection. Defaults to PlateCarree.</dd>
+<dt><strong><code>cmap</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Colormap. Defaults to "plasma".</dd>
+<dt><strong><code>figsize</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>Figure size. Defaults to [25,10].</dd>
+<dt><strong><code>outdir</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to save figures. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>figs</code></dt>
+<dd>list of figure handles</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cmap=None, figsize=[25, 10], outdir=None):
+    &#34;&#34;&#34;Plot ESTELA maps for one or several time periods
+
+    Args:
+        estelas (xr.dataset): ESTELA dataset with F and traveltime fields.
+        groupers (list, optional): Values used to group the results.
+        gainloss (boolean, optional): Flag to plot maps of gain/loss of energy.
+        proj (cartopy.crs, optional): Map projection. Defaults to PlateCarree.
+        cmap (str, optional): Colormap. Defaults to &#34;plasma&#34;.
+        figsize (list, optional): Figure size. Defaults to [25,10].
+        outdir (str): Path to save figures. Defaults to None.
+
+    Returns:
+        figs: list of figure handles
+    &#34;&#34;&#34;
+    lat0 = float(estelas.lat0)
+    lon0 = float(estelas.lon0)
+    gc = great_circles(lat0, lon0, ngc=16)
+    c1day = dict(levels=np.linspace(1, 30, 30), colors=&#34;grey&#34;, linewidths=0.5)
+    c3day = dict(levels=np.linspace(3, 30, 10), colors=&#34;black&#34;, linewidths=1.0)
+    # TODO: type of plots where traveltimes are included should not be hardcoded
+
+    if proj is None:
+        # proj = ccrs.Orthographic(lon0, lat0)
+        proj = ccrs.PlateCarree(central_longitude=lon0)
+
+    if cmap is None:
+        cmap = &#34;seismic&#34; if gainloss else &#34;inferno&#34;
+
+    figs = []
+    groupers = get_groupers(groupers)
+    for grouper in groupers:
+        if grouper == &#34;time.season&#34;:
+            time = [&#34;DJF&#34;, &#34;MAM&#34;, &#34;JJA&#34;, &#34;SON&#34;]
+        elif grouper == &#34;time.month&#34;:
+            time = [f&#34;m{m:02g}&#34; for m in range(1, 13)]
+        else:
+            time = [grouper]
+
+        ds = estelas.sel(time=[t for t in time if t in estelas.time])
+        aux = [ds.isel(time=0).assign(time=t)[&#34;F&#34;] * np.nan for t in time if t not in estelas.time]
+        F = xr.concat([ds[&#34;F&#34;]] + aux, dim=&#34;time&#34;).sel(time=time)
+        F = F.dropna(&#34;longitude&#34;, how=&#34;all&#34;).dropna(&#34;latitude&#34;, how=&#34;all&#34;)
+
+        if gainloss:
+            # TODO: change gainloss argument to fieldname with F as default and calculate Fgl in calc
+            ngc = 360
+            polar_grid = great_circles(lat0, lon0, ngc)
+            polarF = F.interp(polar_grid)
+            dist_midpoints = (polarF.distance.values[1:] + polarF.distance.values[:-1]) / 2
+            cosd = np.cos(polarF.distance * d2r)
+            S = 4 * np.pi * 6371**2 / ngc * abs(cosd.diff(&#34;distance&#34;)) / 2  # km**2
+            incF = (polarF.diff(&#34;distance&#34;) / S).assign_coords(distance=dist_midpoints)
+            F *= np.nan  # empty pcolors, using contourf
+            F.attrs[&#34;standard_name&#34;] = &#34;${\\Delta}F$&#34;
+            F.attrs[&#34;units&#34;] = &#34;$\\frac{kW}{m\\circ{km^2}}$&#34;  # colorbar defined for pcolors
+        else:
+            F = 360 * F
+            F.attrs[&#34;units&#34;] = &#34;$360\\times\\frac{kW}{m\\circ}$&#34;
+
+        print(f&#34;Plotting estelas for time={time} from {ds}\n&#34;)
+        # TODO refactor plotting and choose sensible colorbar limits
+        if len(time) == 1:
+            fig = plt.figure(figsize=figsize)
+            plt.axes(projection=proj)
+            F.plot(
+                transform=ccrs.PlateCarree(),
+                cmap=cmap,
+            )
+        else:
+            g = F.plot(
+                transform=ccrs.PlateCarree(),
+                cmap=cmap,
+                col=&#34;time&#34;,
+                col_wrap=2 if len(time) &lt;= 4 else 3,
+                subplot_kws={&#34;projection&#34;: proj},
+            )
+            fig = g.fig
+            fig.set_figwidth(figsize[0])
+            fig.set_figheight(figsize[1])
+
+        for iax, ax in enumerate(fig.axes[:-1]):
+            extent = ax.get_extent()
+            if time[iax] not in ds.time:
+                continue
+
+            if gainloss:
+                Fi = incF.sel(time=time[iax])
+                clim = float(abs(Fi).quantile(0.95))
+                p = ax.contourf(
+                    incF.longitude,
+                    incF.latitude,
+                    Fi.clip(-clim, clim),
+                    transform=ccrs.PlateCarree(),
+                    levels=15,
+                    cmap=cmap,
+                )
+
+            ttime = ds.traveltime.sel(time=time[iax])
+            for ic, c_args in enumerate([c1day, c3day]):
+                p = ttime.plot.contour(
+                    ax=ax,
+                    transform=ccrs.PlateCarree(),
+                    linestyles=&#34;solid&#34;,
+                    add_labels=False,
+                    zorder=2*(1+ic),
+                    **c_args,
+                )
+            if len(time) == 1:
+                ax.clabel(p, c3day[&#34;levels&#34;], colors=&#34;black&#34;, fmt=&#34;%.0fdays&#34;)
+                ax.plot(gc.longitude, gc.latitude, &#34;.r&#34;, markersize=1, transform=ccrs.PlateCarree())
+
+            if set_global:
+                ax.set_global()
+            else:
+                ax.set_extent(extent, crs=proj)
+            ax.coastlines()
+            ax.stock_img()
+            ax.plot(lon0, lat0, &#34;ok&#34;, transform=ccrs.PlateCarree())
+
+        fig.suptitle(f&#34;[{ds.start_time[:10]} - {ds.end_time[:10]}]&#34;)
+        figs.append(fig)
+        if outdir is not None:
+            maptype = &#34;gainloss&#34; if gainloss else &#34;base&#34;
+            fig.savefig(os.path.join(outdir, f&#34;estela_{grouper}_{maptype}.png&#34;))
+    return figs</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="olas" href="index.html">olas</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="olas.estela.calc" href="#olas.estela.calc">calc</a></code></li>
+<li><code><a title="olas.estela.dist_and_bearing" href="#olas.estela.dist_and_bearing">dist_and_bearing</a></code></li>
+<li><code><a title="olas.estela.geographic_mask" href="#olas.estela.geographic_mask">geographic_mask</a></code></li>
+<li><code><a title="olas.estela.get_groupers" href="#olas.estela.get_groupers">get_groupers</a></code></li>
+<li><code><a title="olas.estela.great_circles" href="#olas.estela.great_circles">great_circles</a></code></li>
+<li><code><a title="olas.estela.parser" href="#olas.estela.parser">parser</a></code></li>
+<li><code><a title="olas.estela.plot" href="#olas.estela.plot">plot</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>
