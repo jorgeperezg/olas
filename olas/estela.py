@@ -1,7 +1,9 @@
-# based on: Perez, J., Mendez, F. J., Menendez, M., & Losada, I. J. (2014).
-# ESTELA: a method for evaluating the source and travel time of the wave energy reaching a local area.
-# Ocean Dynamics, 64(8), 1181–1191. https://doi.org/10.1007/s10236-014-0740-7
-#
+"""Based on https://doi.org/10.1007/s10236-014-0740-7
+
+Perez, J., Mendez, F. J., Menendez, M., & Losada, I. J. (2014).
+ESTELA: a method for evaluating the source and travel time of the wave energy reaching a local area.
+Ocean Dynamics, 64(8), 1181–1191.
+"""
 # Examples:
 # from olas.estela import calc, plot
 # calc with constant spread: estelas = calc("/data_local/tmp/glob2018??01T00.nc", 46, -131, mask="MAPSTA")
@@ -27,6 +29,7 @@ d2r = np.pi / 180.0
 
 
 def parser():
+    """ Command-line entry point """
     parser = argparse.ArgumentParser(description="Calculate estelas")
     parser.add_argument("datafiles", type=str, help="Files with wave data")
     parser.add_argument("lat0", type=float, help="Latitude of the target point")
@@ -50,18 +53,18 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
     """Calculate ESTELA dataset for a target point.
 
     Args:
-        datafiles (str/list): Regular expression or list of data files.
+        datafiles (str or sequence of str): Regular expression or list of data files.
         lat0 (float): Latitude of target point.
         lon0 (float): Longitude of target point.
-        hs (str/list): regex/list of hs field names in datafiles
-        tp (str/list): regex/list of tp field names in datafiles
-        dp (str/list): regex/list of dp field names in datafiles
-        si (str/list/float): Value or regex/list of directional spread field names
+        hs (str or sequence of str): regex/list of hs field names in datafiles
+        tp (str or sequence of str): regex/list of tp field names in datafiles
+        dp (str or sequence of str): regex/list of dp field names in datafiles
+        si (str or sequence of str or float): Value or regex/list of directional spread field names
         mask (str): Information of mask
-        groupers (list, optional): values used to group the results.
+        groupers (sequence of str, optional): Values used to group the results.
 
     Returns:
-        xr.dataset: ESTELA dataset with F and traveltime fields.
+        xarray.Dataset: ESTELA dataset with F and traveltime fields.
     """
     if isinstance(datafiles, str):
         flist = sorted(glob(datafiles))
@@ -175,13 +178,13 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
     """Plot ESTELA maps for one or several time periods
 
     Args:
-        estelas (xr.dataset): ESTELA dataset with F and traveltime fields.
-        groupers (list, optional): Values used to group the results.
-        gainloss (boolean, optional): Flag to plot maps of gain/loss of energy.
+        estelas (xarray.Dataset): ESTELA dataset with F and traveltime fields.
+        groupers (sequence of str, optional): Values used to group the results.
+        gainloss (bool, optional): Flag to plot maps of gain/loss of energy.
         proj (cartopy.crs, optional): Map projection. Defaults to PlateCarree.
-        cmap (str, optional): Colormap. Defaults to "plasma".
-        figsize (list, optional): Figure size. Defaults to [25,10].
-        outdir (str): Path to save figures. Defaults to None.
+        cmap (str, optional): Colormap.
+        figsize (tuple, optional): A tuple (width, height) of the figure in inches.
+        outdir (str): Path to save figures.
 
     Returns:
         figs: list of figure handles
@@ -305,10 +308,10 @@ def great_circles(lat1, lon1, ngc=16):
     Args:
         lat1 (float): Latitude origin point
         lon1 (float): Longitude origin point
-        ngc (int, optional): Number of great circles. Defaults to 16.
+        ngc (int, optional): Number of great circles
 
     Returns:
-        xr.Dataset: dataset with distance and bearing dimensions
+        xarray.Dataset: dataset with distance and bearing dimensions
     """
     lat1_r = float(lat1) * d2r
     lon1_r = float(lon1) * d2r
@@ -333,12 +336,12 @@ def dist_and_bearing(lat1, lat2, lon1, lon2):
 
     Args:
         lat1 (float): Latitude origin point
-        lat2 (float/array): Latitude end points
+        lat2 (float or array): Latitude end points
         lon1 (float): Longitude origin point
-        lon2 (float/array): Longitude end points
+        lon2 (float or array): Longitude end points
 
     Returns:
-        float/array: distances and bearings in degrees
+        float or array: distances and bearings in degrees
     """
     lat1_r = lat1 * d2r
     lat2_r = lat2 * d2r
@@ -405,7 +408,7 @@ def get_groupers(groupers):
     """ Get default groupers if the input is None
 
     Args:
-        groupers (list): groupers for calc and plot functions or None
+        groupers (sequence of str or None): groupers for calc and plot functions
 
     Returns:
         list: groupers for calc and plot functions

@@ -9,6 +9,7 @@ license = "MIT"
 readme = "README.rst"
 homepage = "https://github.com/jorgeperezg/olas"
 repository = "https://github.com/jorgeperezg/olas"
+documentation = "https://jorgeperezg.github.io/olas/estela.html"
 keywords = ["waves", "xarray", "ESTELA"]
 
 [tool.poetry.dependencies]
@@ -26,6 +27,7 @@ pytest = "^5.2"
 pylint = "^2.7.2"
 black = {version = "^20.8b1", allow-prereleases = true}
 ipython = "^7.21.0"
+portray = "^1.6.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
