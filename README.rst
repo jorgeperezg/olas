@@ -4,6 +4,8 @@ olas
 
 Library with wave tools like ESTELA
 
+Documentation: https://jorgeperezg.github.io/olas
+
 Installation
 ------------
 :with conda: conda install -c conda-forge olas
@@ -15,4 +17,3 @@ Installation
    :target: https://anaconda.org/conda-forge/olas
 .. |pypi package version| image:: https://img.shields.io/pypi/v/olas.svg
    :target: https://pypi.python.org/pypi/olas
-
