@@ -6,7 +6,7 @@ authors = [
     "jorge.perez <j.perez@metocean.co.nz>"
 ]
 license = "MIT"
-readme = "README.rst"
+readme = "README.md"
 homepage = "https://github.com/jorgeperezg/olas"
 repository = "https://github.com/jorgeperezg/olas"
 documentation = "https://jorgeperezg.github.io/olas/estela.html"
@@ -32,3 +32,6 @@ portray = "^1.6.0"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.portray.mkdocs.theme]
+name = "material"
