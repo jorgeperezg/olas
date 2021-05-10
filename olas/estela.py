@@ -25,8 +25,8 @@ from dask.diagnostics import ProgressBar
 from matplotlib import pyplot as plt
 from scipy import special
 
-d2r = np.pi / 180.0
-
+D2R = np.pi / 180.0
+"""degrees to radians factor"""
 
 def parser():
     """ Command-line entry point """
@@ -90,15 +90,15 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
 
     # geographical constants and initialization
     dists, bearings = dist_and_bearing(lat0, dsf.latitude, lon0, dsf.longitude)
-    dist_m = dists * 6371000 * d2r
+    dist_m = dists * 6371000 * D2R
     va = 1.4 * 10 ** -5
     rowroa = 1 / 0.0013
     # sigma = 2 * np.pi / ds.tp  # Lemax = (rowroa * 9.81 ** 2) / (4 * sigma ** 3 * (2 * va * sigma) ** 0.5)
     k_dissipation = (
         -dist_m / (rowroa * 9.81 ** 2) * 4 * (2 * va) ** 0.5 * (2 * np.pi) ** 3.5
     )  # coef_dissipation = np.exp(-dist_m / Lemax)
-    th1_sin = np.sin(0.5 * bearings * d2r)
-    th1_cos = np.cos(0.5 * bearings * d2r)
+    th1_sin = np.sin(0.5 * bearings * D2R)
+    th1_cos = np.cos(0.5 * bearings * D2R)
 
     if isinstance(mask, str):
         mask = dsf[mask]
@@ -133,7 +133,7 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
                 coef_spread = A2 * np.pi / 180  # deg
                 # TODO review coef_spread units and compare with wavespectra
 
-            th2 = 0.5 * dp * d2r
+            th2 = 0.5 * dp * D2R
             coef_direction = abs(np.cos(th2) * th1_cos + np.sin(th2) * th1_sin) ** (
                 2.0 * s
             )
@@ -224,7 +224,7 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
             polar_grid = great_circles(lat0, lon0, ngc)
             polarF = F.interp(polar_grid)
             dist_midpoints = (polarF.distance.values[1:] + polarF.distance.values[:-1]) / 2
-            cosd = np.cos(polarF.distance * d2r)
+            cosd = np.cos(polarF.distance * D2R)
             S = 4 * np.pi * 6371**2 / ngc * abs(cosd.diff("distance")) / 2  # km**2
             incF = (polarF.diff("distance") / S).assign_coords(distance=dist_midpoints)
             F *= np.nan  # empty pcolors, using contourf
@@ -313,10 +313,10 @@ def great_circles(lat1, lon1, ngc=16):
     Returns:
         xarray.Dataset: dataset with distance and bearing dimensions
     """
-    lat1_r = float(lat1) * d2r
-    lon1_r = float(lon1) * d2r
-    dist_r = xr.DataArray(dims="distance", data=np.linspace(0.5, 179.5, 180) * d2r)
-    brng_r = xr.DataArray(dims="bearing", data=np.linspace(0, 360, ngc+1)[:-1] * d2r)
+    lat1_r = float(lat1) * D2R
+    lon1_r = float(lon1) * D2R
+    dist_r = xr.DataArray(dims="distance", data=np.linspace(0.5, 179.5, 180) * D2R)
+    brng_r = xr.DataArray(dims="bearing", data=np.linspace(0, 360, ngc+1)[:-1] * D2R)
 
     sin_lat1 = np.sin(lat1_r)
     cos_lat1 = np.cos(lat1_r)
@@ -325,9 +325,9 @@ def great_circles(lat1, lon1, ngc=16):
 
     lat2 = np.arcsin(sin_lat1*cos_dR + cos_lat1*sin_dR*np.cos(brng_r))
     lon2 = lon1_r + np.arctan2(np.sin(brng_r)*sin_dR*cos_lat1, cos_dR-sin_lat1*np.sin(lat2))
-    gc = xr.Dataset({"latitude": lat2 / d2r, "longitude": (lon2 / d2r % 360).transpose()})
-    gc["distance"] = dist_r / d2r
-    gc["bearing"] = brng_r / d2r
+    gc = xr.Dataset({"latitude": lat2 / D2R, "longitude": (lon2 / D2R % 360).transpose()})
+    gc["distance"] = dist_r / D2R
+    gc["bearing"] = brng_r / D2R
     return gc
 
 
@@ -343,20 +343,20 @@ def dist_and_bearing(lat1, lat2, lon1, lon2):
     Returns:
         float or array: distances and bearings in degrees
     """
-    lat1_r = lat1 * d2r
-    lat2_r = lat2 * d2r
-    latdif_r = (lat2 - lat1) * d2r
-    londif_r = (lon2 - lon1) * d2r
+    lat1_r = lat1 * D2R
+    lat2_r = lat2 * D2R
+    latdif_r = (lat2 - lat1) * D2R
+    londif_r = (lon2 - lon1) * D2R
 
     a = np.sin(latdif_r / 2) * np.sin(latdif_r / 2) + np.cos(lat1_r) * np.cos(
         lat2_r
     ) * np.sin(londif_r / 2) * np.sin(londif_r / 2)
     a = a.clip(0., 1.) # to avoid warning for a=1.0000001,
-    degdist = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)) / d2r
+    degdist = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)) / D2R
 
     y = np.sin(londif_r) * np.cos(lat2_r)
     x = np.cos(lat1_r) * np.sin(lat2_r) - np.sin(lat1_r) * np.cos(lat2_r) * np.cos(londif_r)
-    brng = (np.arctan2(y, x) / d2r).transpose() % 360
+    brng = (np.arctan2(y, x) / D2R).transpose() % 360
     return (degdist, brng)
 
 
