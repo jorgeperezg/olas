@@ -6,8 +6,8 @@ Ocean Dynamics, 64(8), 1181–1191.
 """
 # Examples:
 # from olas.estela import calc, plot
-# calc with constant spread: estelas = calc("/data_local/tmp/glob2018??01T00.nc", 46, -131, mask="MAPSTA")
-# calc with spread: estelas = calc("/data_local/tmp/ww3.glob_24m.2010??.nc", 46, -131, "hs.", "tp.", "th.", "si.", "MAPSTA")
+# calc with constant spread: estelas = calc("/data_local/tmp/glob2018??01T00.nc", 46, -131)
+# calc with spread: estelas = calc("/data_local/tmp/ww3.glob_24m.2010??.nc", 46, -131, "hs.", "tp.", "th.", "si.")
 # plot energy maps: plot(estelas, outdir=".")
 # plot gain/loss maps: plot(estelas, gainloss=True, outdir=".")
 
@@ -38,18 +38,17 @@ def parser():
     parser.add_argument("--tp", type=str, default="tp", help="Peak period fieldnames")
     parser.add_argument("--dp", type=str, default="dp", help="Wave direction fieldnames")
     parser.add_argument("--si", default=20, help="Directional spread fieldnames")
-    parser.add_argument("-m", "--mask", type=str, default=None, help="mask fieldname")
     parser.add_argument("-g", "--groupers", nargs="*", default=None, help="groupers for results")
     parser.add_argument("-p", "--proj", type=str, default=None, help="projection")
     parser.add_argument("-o", "--outdir", type=str, default=None, help="output directory")
     args = parser.parse_args()
 
-    estelas = calc(args.datafiles, args.lat0, args.lon0, args.hs, args.tp, args.dp, args.si, args.mask, args.groupers)
+    estelas = calc(args.datafiles, args.lat0, args.lon0, args.hs, args.tp, args.dp, args.si, args.groupers)
     plot(estelas, groupers=args.groupers, proj=args.proj, outdir=args.outdir)
     plt.show()
 
 
-def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=None, groupers=None):
+def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, groupers=None):
     """Calculate ESTELA dataset for a target point.
 
     Args:
@@ -60,7 +59,6 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
         tp (str or sequence of str): regex/list of tp field names in datafiles
         dp (str or sequence of str): regex/list of dp field names in datafiles
         si (str or sequence of str or float): Value or regex/list of directional spread field names
-        mask (str): Information of mask
         groupers (sequence of str, optional): Values used to group the results.
 
     Returns:
@@ -90,6 +88,7 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
 
     # geographical constants and initialization
     dists, bearings = dist_and_bearing(lat0, dsf.latitude, lon0, dsf.longitude)
+    vland = geographic_mask(lat0, lon0, dists, bearings)
     dist_m = dists * 6371000 * D2R
     va = 1.4 * 10 ** -5
     rowroa = 1 / 0.0013
@@ -99,10 +98,6 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, mask=No
     )  # coef_dissipation = np.exp(-dist_m / Lemax)
     th1_sin = np.sin(0.5 * bearings * D2R)
     th1_cos = np.cos(0.5 * bearings * D2R)
-
-    if isinstance(mask, str):
-        mask = dsf[mask]
-    vland = geographic_mask(lat0, lon0, dists, bearings, mask=mask)
 
     # S and Stp calculations
     si_calculations = True
@@ -286,7 +281,7 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
                 ax.clabel(p, c3day["levels"], colors="black", fmt="%.0fdays")
                 ax.plot(gc.longitude, gc.latitude, ".r", markersize=1, transform=ccrs.PlateCarree())
 
-            if set_global:
+            if set_global or (extent[1]-extent[0]) % 360 == 0:
                 ax.set_global()
             else:
                 ax.set_extent(extent, crs=proj)
@@ -360,8 +355,7 @@ def dist_and_bearing(lat1, lat2, lon1, lon2):
     return (degdist, brng)
 
 
-def geographic_mask(lat0, lon0, dists, bearings, mask=None):
-    # TODO this approach for geographic_mask is not clean enough
+def geographic_mask(lat0, lon0, dists, bearings):
     """Check the great circles points to find points not blocked by land
 
     Args:
@@ -369,37 +363,49 @@ def geographic_mask(lat0, lon0, dists, bearings, mask=None):
         lon0 (float): Longitude origin point
         dists (array): Distances
         bearings (array): Bearings
-        mask (array, optional): mask where ocean points are True
 
     Returns:
         array: points not blocked by land
     """
+    def circ_closed_range(i1, i2, n=360):
+        if abs(i2 - i1) <= n / 2:
+            if i2 > i1:
+                rng = range(i1, i2 + 1, +1)
+            else:
+                rng = range(i1, i2 - 1, -1)
+        else:
+            if i2 > i1:
+                rng = range(i1 + n, i2 - 1, -1)
+            else:
+                rng = range(i1, i2 + n + 1, +1)
+        indices = [x % n for x in rng]
+        return indices
 
-    def update_dmax(dmax, dists, bearings):
-        ibearings = np.trunc(bearings % 360).astype(int)
-        for d, b in zip(dists, ibearings):
-            dmax[b] = min(dmax[b], d)
+    def update_dmax(dmax, dists, ibearings):
+        for idist in range(len(dists)-1):
+            d1 = dists[idist]
+            d2 = dists[idist+1]
+            i1 = ibearings[idist]
+            i2 = ibearings[idist+1]
+            for i in circ_closed_range(i1, i2):
+                if i2 == i1:
+                    d = d1
+                else:
+                    d = d1 + (d2-d1)/(i2-i1)*(i-i1)
+                dmax[i] = min(dmax[i], d)
         return dmax
 
-    dmax = 180 * np.ones(360)
-    if mask is None:
-        mask = xr.ones_like(dists)
-    mask = mask.where(dists > 0, np.nan)
-
-    valid = (mask != 1).values.flatten()
-    d_arr = dists.values.flatten()[valid]
-    b_arr = bearings.values.flatten()[valid]
-    dmax = update_dmax(dmax, d_arr, b_arr)
-
-    # shpfilename = shpreader.gshhs(scale='c', level=1)
+    dmax = 179.99 * np.ones(360)
     shpfilename = shpreader.natural_earth(
         resolution="110m", category="physical", name="coastline"
     )
+    # shpfilename = shpreader.gshhs(scale='c', level=1)
     coastlines = shpreader.Reader(shpfilename).records()
     for c in coastlines:
         lonland, latland = map(np.array, zip(*c.geometry.coords))
         distland, bearingland = dist_and_bearing(lat0, latland, lon0, lonland)
-        dmax = update_dmax(dmax, distland, bearingland)
+        ibearingland = np.trunc(bearingland % 360).astype(int)
+        dmax = update_dmax(dmax, distland, ibearingland)
     vland = dists < dmax[np.trunc(bearings % 360).astype(int)]
     return vland
 

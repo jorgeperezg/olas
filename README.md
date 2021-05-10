@@ -22,13 +22,12 @@ conda install -c conda-forge olas
 
 Installation with pip requires cartopy (it can be installed with `conda install -c conda-forge cartopy`):
 ```
-pip install olas 
+pip install olas
 ```
 
 ## Basic usage
 Calculate and plot ESTELA maps from netcdf files.
 
-NOTE: The geographic mask calculation has to be improved
 ```
 from olas.estela import calc, plot
 estelas = calc("./tests/sample_files/test20180101T??.nc", 44, -4, "hs", "tp", "dp")
