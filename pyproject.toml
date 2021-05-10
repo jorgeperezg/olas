@@ -34,4 +34,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.portray.mkdocs.theme]
+favicon = "art/logo_small.png"
+logo = "art/logo_small.png"
 name = "material"
+palette = {primary = "indigo", accent = "pink"}
