@@ -39,27 +39,29 @@ def parser():
     parser.add_argument("--dp", type=str, default="dp", help="Wave direction fieldnames")
     parser.add_argument("--si", default=20, help="Directional spread fieldnames")
     parser.add_argument("-g", "--groupers", nargs="*", default=None, help="groupers for results")
+    parser.add_argument("-n", "--nblocks", type=int, default=1, help="Number of blocks for file calculations")
     parser.add_argument("-p", "--proj", type=str, default=None, help="projection")
     parser.add_argument("-o", "--outdir", type=str, default=None, help="output directory")
     args = parser.parse_args()
 
-    estelas = calc(args.datafiles, args.lat0, args.lon0, args.hs, args.tp, args.dp, args.si, args.groupers)
+    estelas = calc(args.datafiles, args.lat0, args.lon0, args.hs, args.tp, args.dp, args.si, args.groupers, args.nblocks)
     plot(estelas, groupers=args.groupers, proj=args.proj, outdir=args.outdir)
     plt.show()
 
 
-def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, groupers=None):
+def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, groupers=None, nblocks=1):
     """Calculate ESTELA dataset for a target point.
 
     Args:
         datafiles (str or sequence of str): Regular expression or list of data files.
         lat0 (float): Latitude of target point.
         lon0 (float): Longitude of target point.
-        hs (str or sequence of str): regex/list of hs field names in datafiles
-        tp (str or sequence of str): regex/list of tp field names in datafiles
-        dp (str or sequence of str): regex/list of dp field names in datafiles
-        si (str or sequence of str or float): Value or regex/list of directional spread field names
+        hs (str or sequence of str): regex/list of hs field names in datafiles.
+        tp (str or sequence of str): regex/list of tp field names in datafiles.
+        dp (str or sequence of str): regex/list of dp field names in datafiles.
+        si (str or sequence of str or float): Value or regex/list of directional spread field names.
         groupers (sequence of str, optional): Values used to group the results.
+        nblocks (int, optional): Number of blocks. More blocks need less memory but calculations are slower.
 
     Returns:
         xarray.Dataset: ESTELA dataset with F and traveltime fields.
@@ -103,54 +105,59 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, grouper
     si_calculations = True
     grouped_results = dict()
     for f in flist:
-        print(f"{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {f}")
-
         dsf = xr.open_mfdataset(f).chunk("auto")
-        file_results = xr.Dataset()
-        for ipart in range(npart):
-            hs = dsf[spec_info["hs"][ipart]]
-            tp = dsf[spec_info["tp"][ipart]]
-            dp = dsf[spec_info["dp"][ipart]]
+        if nblocks > 1:
+            dsf_blocks = [g for _, g in dsf.groupby_bins("time", nblocks)]
+        else:
+            dsf_blocks = [dsf]
 
-            coef_dissipation = np.exp(k_dissipation * (tp ** -3.5))
+        print(f"{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {f} (nblocks={nblocks})")
+        for dsi in dsf_blocks:
+            block_results = xr.Dataset()
+            for ipart in range(npart):
+                hs = dsi[spec_info["hs"][ipart]]
+                tp = dsi[spec_info["tp"][ipart]]
+                dp = dsi[spec_info["dp"][ipart]]
 
-            if si_calculations:
-                if num_si:  # don't repeat calculations
-                    si = spec_info["si"]
-                    si_calculations = False
+                coef_dissipation = np.exp(k_dissipation * (tp ** -3.5))
+
+                if si_calculations:
+                    if num_si:  # don't repeat calculations
+                        si = spec_info["si"]
+                        si_calculations = False
+                    else:
+                        si = dsi[spec_info["si"][ipart]].clip(15., 45.)
+                        # TODO find better solution to avoid invalid A2 values
+
+                    s = (2 / (si * np.pi / 180) ** 2) - 1
+                    A2 = special.gamma(s + 1) / (special.gamma(s + 0.5) * 2 * np.pi ** 0.5)
+                    # TODO find faster spread approach (use normal distribution or table?)
+                    coef_spread = A2 * np.pi / 180  # deg
+                    # TODO review coef_spread units and compare with wavespectra
+
+                th2 = 0.5 * dp * D2R
+                coef_direction = abs(np.cos(th2) * th1_cos + np.sin(th2) * th1_sin) ** (
+                    2.0 * s
+                )
+
+                Spart_th = hs ** 2 / 16 * coef_dissipation * coef_direction * coef_spread
+                block_results["S_th"] = block_results.get("S_th", 0) + (Spart_th)
+                block_results["Stp_th"] = block_results.get("Stp_th", 0) + (tp * Spart_th)
+
+            with ProgressBar():
+                block_results.load()
+
+            for grouper in groupers:
+                if grouper == "ALL":
+                    grouped_results["ALL"] = grouped_results.get(
+                        "ALL", 0
+                    ) + block_results.sum("time").assign(ntime=len(dsi.time))
                 else:
-                    si = dsf[spec_info["si"][ipart]].clip(15., 45.)
-                    # TODO find better solution to avoid invalid A2 values
-
-                s = (2 / (si * np.pi / 180) ** 2) - 1
-                A2 = special.gamma(s + 1) / (special.gamma(s + 0.5) * 2 * np.pi ** 0.5)
-                # TODO find faster spread approach (use normal distribution or table?)
-                coef_spread = A2 * np.pi / 180  # deg
-                # TODO review coef_spread units and compare with wavespectra
-
-            th2 = 0.5 * dp * D2R
-            coef_direction = abs(np.cos(th2) * th1_cos + np.sin(th2) * th1_sin) ** (
-                2.0 * s
-            )
-
-            Spart_th = hs ** 2 / 16 * coef_dissipation * coef_direction * coef_spread
-            file_results["S_th"] = file_results.get("S_th", 0) + (Spart_th)
-            file_results["Stp_th"] = file_results.get("Stp_th", 0) + (tp * Spart_th)
-
-        with ProgressBar():
-            file_results.load()
-
-        for grouper in groupers:
-            if grouper == "ALL":
-                grouped_results["ALL"] = grouped_results.get(
-                    "ALL", 0
-                ) + file_results.sum("time").assign(ntime=len(dsf.time))
-            else:
-                for k, v in file_results.groupby(grouper):
-                    kstr = f"m{k:02g}" if grouper == "time.month" else str(k)
-                    grouped_results[kstr] = grouped_results.get(kstr, 0) + v.sum(
-                        "time"
-                    ).assign(ntime=len(v.time))
+                    for k, v in block_results.groupby(grouper):
+                        kstr = f"m{k:02g}" if grouper == "time.month" else str(k)
+                        grouped_results[kstr] = grouped_results.get(kstr, 0) + v.sum(
+                            "time"
+                        ).assign(ntime=len(v.time))
 
     # Saving estelas
     time = xr.Variable(data=sorted(grouped_results), dims="time")
