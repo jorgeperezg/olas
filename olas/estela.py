@@ -115,34 +115,34 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, grouper
         for dsi in dsf_blocks:
             block_results = xr.Dataset()
             for ipart in range(npart):
-                hs = dsi[spec_info["hs"][ipart]]
-                tp = dsi[spec_info["tp"][ipart]]
-                dp = dsi[spec_info["dp"][ipart]]
+                hs_data = dsi[spec_info["hs"][ipart]]
+                tp_data = dsi[spec_info["tp"][ipart]]
+                dp_data = dsi[spec_info["dp"][ipart]]
 
-                coef_dissipation = np.exp(k_dissipation * (tp ** -3.5))
+                coef_dissipation = np.exp(k_dissipation * (tp_data ** -3.5))
 
                 if si_calculations:
                     if num_si:  # don't repeat calculations
-                        si = spec_info["si"]
+                        si_data = spec_info["si"]
                         si_calculations = False
                     else:
-                        si = dsi[spec_info["si"][ipart]].clip(15., 45.)
+                        si_data = dsi[spec_info["si"][ipart]].clip(15., 45.)
                         # TODO find better solution to avoid invalid A2 values
 
-                    s = (2 / (si * np.pi / 180) ** 2) - 1
+                    s = (2 / (si_data * np.pi / 180) ** 2) - 1
                     A2 = special.gamma(s + 1) / (special.gamma(s + 0.5) * 2 * np.pi ** 0.5)
                     # TODO find faster spread approach (use normal distribution or table?)
                     coef_spread = A2 * np.pi / 180  # deg
                     # TODO review coef_spread units and compare with wavespectra
 
-                th2 = 0.5 * dp * D2R
+                th2 = 0.5 * dp_data * D2R
                 coef_direction = abs(np.cos(th2) * th1_cos + np.sin(th2) * th1_sin) ** (
                     2.0 * s
                 )
 
-                Spart_th = hs ** 2 / 16 * coef_dissipation * coef_direction * coef_spread
+                Spart_th = hs_data ** 2 / 16 * coef_dissipation * coef_direction * coef_spread
                 block_results["S_th"] = block_results.get("S_th", 0) + (Spart_th)
-                block_results["Stp_th"] = block_results.get("Stp_th", 0) + (tp * Spart_th)
+                block_results["Stp_th"] = block_results.get("Stp_th", 0) + (tp_data * Spart_th)
 
             with ProgressBar():
                 block_results.load()
