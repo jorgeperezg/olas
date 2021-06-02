@@ -80,14 +80,6 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, grouper
     # TODO calculate several sites at the same time. Problematic memory usage but much faster (if data reading is slow)
 
     dsf = xr.open_mfdataset(flist[0])
-    spec_info = dict(hs=hs, tp=tp, dp=dp, si=si)
-    for k, value in spec_info.items():
-        if isinstance(value, str):  # expand regular expressions
-            spec_info[k] = sorted(v for v in dsf.variables if re.fullmatch(value, v))
-    npart = len(spec_info["hs"])
-    num_si = isinstance(spec_info["si"], (int, float))
-    print(spec_info)
-
     # geographical constants and initialization
     dists, bearings = dist_and_bearing(lat0, dsf.latitude, lon0, dsf.longitude)
     vland = geographic_mask(lat0, lon0, dists, bearings)
@@ -106,12 +98,21 @@ def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, grouper
     grouped_results = dict()
     for f in flist:
         dsf = xr.open_mfdataset(f).chunk("auto")
+
         if nblocks > 1:
             dsf_blocks = [g for _, g in dsf.groupby_bins("time", nblocks)]
         else:
             dsf_blocks = [dsf]
-
         print(f"{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {f} (nblocks={nblocks})")
+
+        spec_info = dict(hs=hs, tp=tp, dp=dp, si=si)
+        for k, value in spec_info.items():
+            if isinstance(value, str):  # expand regular expressions
+                spec_info[k] = sorted(v for v in dsf.variables if re.fullmatch(value, v))
+        npart = len(spec_info["hs"])
+        num_si = isinstance(spec_info["si"], (int, float))
+        print(spec_info)
+
         for dsi in dsf_blocks:
             block_results = xr.Dataset()
             for ipart in range(npart):
