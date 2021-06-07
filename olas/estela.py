@@ -48,8 +48,7 @@ def parser():
     plot(estelas, groupers=args.groupers, proj=args.proj, outdir=args.outdir)
     plt.show()
 
-
-def calc(datafiles, lat0, lon0, hs="phs.", tp="ptp.", dp="pdir.", si=20, groupers=None, nblocks=1):
+def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si=20, groupers=None, nblocks=1):
     """Calculate ESTELA dataset for a target point.
 
     Args:
