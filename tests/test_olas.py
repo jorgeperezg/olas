@@ -8,7 +8,7 @@ FILES_DIR = os.path.join(os.path.dirname(__file__), "sample_files")
 
 
 def test_version():
-    assert __version__ == "0.1.6"
+    assert __version__ == "0.1.7"
 
 
 def test_dist_and_bearing():

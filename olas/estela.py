@@ -7,7 +7,7 @@ Ocean Dynamics, 64(8), 1181–1191.
 # Examples:
 # from olas.estela import calc, plot
 # calc with constant spread: estelas = calc("/data_local/tmp/glob2018??01T00.nc", 46, -131)
-# calc with spread: estelas = calc("/data_local/tmp/ww3.glob_24m.2010??.nc", 46, -131, "hs.", "tp.", "th.", "si.")
+# calc with spread: estelas = calc("/data_local/tmp/ww3.glob_24m.2010??.nc", 46, -131, si="si.")
 # plot energy maps: plot(estelas, outdir=".")
 # plot gain/loss maps: plot(estelas, gainloss=True, outdir=".")
 

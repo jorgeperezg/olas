@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "olas"
-version = "0.1.6"
+version = "0.1.7"
 description = "Library with wave tools like ESTELA"
 authors = [
     "jorge.perez <j.perez@metocean.co.nz>"
