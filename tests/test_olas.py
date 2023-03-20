@@ -2,13 +2,10 @@ import os
 
 import numpy as np
 import xarray as xr
-from olas import __version__, estela
+
+from olas import estela
 
 FILES_DIR = os.path.join(os.path.dirname(__file__), "sample_files")
-
-
-def test_version():
-    assert __version__ == "0.1.7"
 
 
 def test_dist_and_bearing():
