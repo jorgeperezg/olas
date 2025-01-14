@@ -13,22 +13,29 @@ Documentation: <https://jorgeperezg.github.io/olas>
 
 ## Installation
 
-Installation with is straightforward
+Installation with pip (or similar tools) is straightforward:
 ```
 pip install olas
 ```
 
-It can also be installed from conda-forge:
+It can also be installed with conda from conda-forge:
 ```
 conda install -c conda-forge olas
 ```
 
 ## Basic usage
-Calculate and plot ESTELA maps from netcdf files.
+Calculate and plot ESTELA maps from the sample netcdf files.
 
+Using the command line interface:
+```sh
+# estela -h to check additional options
+estela "./tests/sample_files/test20180101T??.nc" 44 -4 --outdir "."
 ```
+
+Or python functions:
+```python
 from olas.estela import calc, plot
-estelas = calc("./tests/sample_files/test20180101T??.nc", 44, -4, "hs", "tp", "dp")
+estelas = calc("./tests/sample_files/test20180101T??.nc", 44, -4)
 plot(estelas, outdir=".")
-plot(estelas, gainloss=True, outdir=".")
+plot(estelas, outdir=".")  # gainloss=True for plotting GL maps
 ```

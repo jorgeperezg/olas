@@ -30,6 +30,9 @@ dev = [
     "mkdocs-material >=9",
 ]
 
+[project.scripts]
+estela = "olas.estela:parser"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
