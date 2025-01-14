@@ -12,7 +12,7 @@ Ocean Dynamics, 64(8), 1181–1191.
 # plot gain/loss maps: plot(estelas, gainloss=True, outdir=".")
 
 import argparse
-import datetime
+import logging
 import os
 import re
 from glob import glob
@@ -28,6 +28,7 @@ from scipy import special
 D2R = np.pi / 180.0
 """degrees to radians factor"""
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 def parser():
     """Command-line entry point"""
@@ -66,11 +67,11 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si
     Returns:
         xarray.Dataset: ESTELA dataset with F and traveltime fields.
     """
+    logging.info(f"Starting ESTELA calculations for lat0={lat0}, lon0={lon0}")
     if isinstance(datafiles, str):
         flist = sorted(glob(datafiles))
     else:
         flist = sorted(datafiles)
-    print(f"{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {len(flist)} files")
     groupers = get_groupers(groupers)
 
     lon0 %= 360.0
@@ -79,8 +80,8 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si
     sites = xr.Dataset(dict(lat0=lat0_arr, lon0=lon0_arr))
     # TODO calculate several sites at the same time. Problematic memory usage but much faster (if data reading is slow)
 
+    logging.info("geographical constants and initialization")
     dsf = xr.open_mfdataset(flist[0])
-    # geographical constants and initialization
     dists, bearings = dist_and_bearing(lat0, dsf.latitude, lon0, dsf.longitude)
     vland = geographic_mask(lat0, lon0, dists, bearings)
     dist_m = dists * 6371000 * D2R
@@ -93,17 +94,19 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si
     th1_sin = np.sin(0.5 * bearings * D2R)
     th1_cos = np.cos(0.5 * bearings * D2R)
 
+    nfiles = len(flist)
+    logging.info(f"Processing {nfiles} files with nblocks={nblocks}")
     # S and Stp calculations
     si_calculations = True
     grouped_results = dict()
-    for f in flist:
-        dsf = xr.open_mfdataset(f).chunk("auto")
+    for ifile, file in enumerate(flist):
+        dsf = xr.open_mfdataset(file).chunk("auto")
 
         if nblocks > 1:
             dsf_blocks = [g for _, g in dsf.groupby_bins("time", nblocks)]
         else:
             dsf_blocks = [dsf]
-        print(f"{datetime.datetime.utcnow():%Y%m%d %H:%M:%S} Processing {f} (nblocks={nblocks})")
+        logging.info(f"File {ifile + 1}/{nfiles}: {file}")
 
         spec_info = dict(hs=hs, tp=tp, dp=dp, si=si)
         for k, value in spec_info.items():
@@ -111,7 +114,7 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si
                 spec_info[k] = sorted(v for v in dsf.variables if re.fullmatch(value, v))
         npart = len(spec_info["hs"])
         num_si = isinstance(spec_info["si"], (int, float))
-        print(spec_info)
+        logging.info(f"spec_info: {spec_info}")
 
         for dsi in dsf_blocks:
             block_results = xr.Dataset()
@@ -160,7 +163,7 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si
                             "time"
                         ).assign(ntime=len(v.time))
 
-    # Saving estelas
+    logging.info("Creating estelas dataset")
     time = xr.Variable(data=sorted(grouped_results), dims="time")
     estelas_aux = xr.concat([grouped_results[k] for k in time.values], dim=time)
     # TODO Te instead of Tp.  tp_te_ratio = 1.1 ?
@@ -246,7 +249,7 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
             F = 360 * F
             F.attrs["units"] = "$360\\times\\frac{kW}{m\\circ}$"
 
-        print(f"Plotting estelas for time={time} from {ds}\n")
+        logging.info(f"Plotting estelas for time={time} from {ds}")
         # TODO refactor plotting and choose sensible colorbar limits
         if len(time) == 1:
             fig = plt.figure(figsize=figsize)
@@ -310,7 +313,9 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
         figs.append(fig)
         if outdir is not None:
             maptype = "gainloss" if gainloss else "base"
-            fig.savefig(os.path.join(outdir, f"estela_{grouper}_{maptype}.png"))
+            fname = os.path.join(outdir, f"estela_{grouper}_{maptype}.png")
+            logging.info(f"Saving {fname}")
+            fig.savefig(fname)
     return figs
 
 
