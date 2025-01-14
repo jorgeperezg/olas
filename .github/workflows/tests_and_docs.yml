@@ -1,0 +1,44 @@
+name: Test and docs
+
+on: push
+
+jobs:
+  tests-docs:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.9"
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        # Install latest uv version using the installer
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install verification
+        run: uv pip install . --all-extras
+        env:
+          UV_SYSTEM_PYTHON: 1
+
+      - name: Run all tests
+        run: python -m pytest --durations=0
+
+      - name: Build but not deploy documentation
+        if:  github.ref != 'refs/heads/main' && matrix.python-version == '3.13'
+        run: python -m mkdocs build
+
+      - name: Deploy documentation in github pages
+        if:  github.ref == 'refs/heads/main' && matrix.python-version == '3.13'
+        run: python -m mkdocs gh-deploy --force --clean

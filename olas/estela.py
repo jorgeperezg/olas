@@ -28,8 +28,9 @@ from scipy import special
 D2R = np.pi / 180.0
 """degrees to radians factor"""
 
+
 def parser():
-    """ Command-line entry point """
+    """Command-line entry point"""
     parser = argparse.ArgumentParser(description="Calculate estelas")
     parser.add_argument("datafiles", type=str, help="Files with wave data")
     parser.add_argument("lat0", type=float, help="Latitude of the target point")
@@ -83,11 +84,11 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si
     dists, bearings = dist_and_bearing(lat0, dsf.latitude, lon0, dsf.longitude)
     vland = geographic_mask(lat0, lon0, dists, bearings)
     dist_m = dists * 6371000 * D2R
-    va = 1.4 * 10 ** -5
+    va = 1.4 * 10**-5
     rowroa = 1 / 0.0013
     # sigma = 2 * np.pi / ds.tp  # Lemax = (rowroa * 9.81 ** 2) / (4 * sigma ** 3 * (2 * va * sigma) ** 0.5)
     k_dissipation = (
-        -dist_m / (rowroa * 9.81 ** 2) * 4 * (2 * va) ** 0.5 * (2 * np.pi) ** 3.5
+        -dist_m / (rowroa * 9.81**2) * 4 * (2 * va) ** 0.5 * (2 * np.pi) ** 3.5
     )  # coef_dissipation = np.exp(-dist_m / Lemax)
     th1_sin = np.sin(0.5 * bearings * D2R)
     th1_cos = np.cos(0.5 * bearings * D2R)
@@ -119,18 +120,18 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si
                 tp_data = dsi[spec_info["tp"][ipart]]
                 dp_data = dsi[spec_info["dp"][ipart]]
 
-                coef_dissipation = np.exp(k_dissipation * (tp_data ** -3.5))
+                coef_dissipation = np.exp(k_dissipation * (tp_data**-3.5))
 
                 if si_calculations:
                     if num_si:  # don't repeat calculations
                         si_data = spec_info["si"]
                         si_calculations = False
                     else:
-                        si_data = dsi[spec_info["si"][ipart]].clip(15., 45.)
+                        si_data = dsi[spec_info["si"][ipart]].clip(15.0, 45.0)
                         # TODO find better solution to avoid invalid A2 values
 
                     s = (2 / (si_data * np.pi / 180) ** 2) - 1
-                    A2 = special.gamma(s + 1) / (special.gamma(s + 0.5) * 2 * np.pi ** 0.5)
+                    A2 = special.gamma(s + 1) / (special.gamma(s + 0.5) * 2 * np.pi**0.5)
                     # TODO find faster spread approach (use normal distribution or table?)
                     coef_spread = A2 * np.pi / 180  # deg
                     # TODO review coef_spread units and compare with wavespectra
@@ -140,7 +141,7 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si
                     2.0 * s
                 )
 
-                Spart_th = hs_data ** 2 / 16 * coef_dissipation * coef_direction * coef_spread
+                Spart_th = hs_data**2 / 16 * coef_dissipation * coef_direction * coef_spread
                 block_results["S_th"] = block_results.get("S_th", 0) + (Spart_th)
                 block_results["Stp_th"] = block_results.get("Stp_th", 0) + (tp_data * Spart_th)
 
@@ -167,7 +168,10 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si
         1.025 * 9.81 * estelas_aux["Stp_th"] / estelas_aux["ntime"] * 9.81 / 4 / np.pi
     )
     cg_mps = (estelas_aux["Stp_th"] / estelas_aux["S_th"]) * 9.81 / 4 / np.pi
-    estelas_dict = {"F": 360 * Fdeg, "traveltime": (3600 * 24 * cg_mps / dist_m)**-1}  # dimensions order tyx
+    estelas_dict = {
+        "F": 360 * Fdeg,
+        "traveltime": (3600 * 24 * cg_mps / dist_m) ** -1,
+    }  # dimensions order tyx
     estelas = xr.Dataset(estelas_dict).where(vland, np.nan).merge(sites)
     estelas.F.attrs["units"] = "$\\frac{kW}{m\\circ}$"
     estelas.traveltime.attrs["units"] = "days"
@@ -176,7 +180,7 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si
     return estelas
 
 
-def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cmap=None, figsize=[25, 10], outdir=None):
+def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cmap=None, figsize=None, outdir=None):
     """Plot ESTELA maps for one or several time periods
 
     Args:
@@ -191,6 +195,8 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
     Returns:
         figs: list of figure handles
     """
+    if figsize is None:
+        figsize = [25, 10]
     lat0 = float(estelas.lat0)
     lon0 = float(estelas.lon0)
     gc = great_circles(lat0, lon0, ngc=16)
@@ -216,7 +222,11 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
             time = [grouper]
 
         ds = estelas.sel(time=[t for t in time if t in estelas.time])
-        aux = [ds.isel(time=0).assign(time=t)["F"] * np.nan for t in time if t not in estelas.time]
+        aux = [
+            ds.isel(time=0).assign(time=t)["F"] * np.nan
+            for t in time
+            if t not in estelas.time
+        ]
         F = xr.concat([ds["F"]] + aux, dim="time").sel(time=time)
         F = F.dropna("longitude", how="all").dropna("latitude", how="all")
 
@@ -288,7 +298,7 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
                 ax.clabel(p, c3day["levels"], colors="black", fmt="%.0fdays")
                 ax.plot(gc.longitude, gc.latitude, ".r", markersize=1, transform=ccrs.PlateCarree())
 
-            if set_global or (extent[1]-extent[0]) % 360 == 0:
+            if set_global or (extent[1] - extent[0]) % 360 == 0:
                 ax.set_global()
             else:
                 ax.set_extent(extent, crs=proj)
@@ -305,7 +315,7 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
 
 
 def great_circles(lat1, lon1, ngc=16):
-    """ Calculate great circles
+    """Calculate great circles
 
     Args:
         lat1 (float): Latitude origin point
@@ -318,16 +328,18 @@ def great_circles(lat1, lon1, ngc=16):
     lat1_r = float(lat1) * D2R
     lon1_r = float(lon1) * D2R
     dist_r = xr.DataArray(dims="distance", data=np.linspace(0.5, 179.5, 180) * D2R)
-    brng_r = xr.DataArray(dims="bearing", data=np.linspace(0, 360, ngc+1)[:-1] * D2R)
+    brng_r = xr.DataArray(dims="bearing", data=np.linspace(0, 360, ngc + 1)[:-1] * D2R)
 
     sin_lat1 = np.sin(lat1_r)
     cos_lat1 = np.cos(lat1_r)
     sin_dR = np.sin(dist_r)
     cos_dR = np.cos(dist_r)
 
-    lat2 = np.arcsin(sin_lat1*cos_dR + cos_lat1*sin_dR*np.cos(brng_r))
-    lon2 = lon1_r + np.arctan2(np.sin(brng_r)*sin_dR*cos_lat1, cos_dR-sin_lat1*np.sin(lat2))
-    gc = xr.Dataset({"latitude": lat2 / D2R, "longitude": (lon2 / D2R % 360).transpose()})
+    lat2 = np.arcsin(sin_lat1 * cos_dR + cos_lat1 * sin_dR * np.cos(brng_r))
+    lon2 = lon1_r + np.arctan2(np.sin(brng_r) * sin_dR * cos_lat1, cos_dR - sin_lat1 * np.sin(lat2))
+    gc = xr.Dataset(
+        {"latitude": lat2 / D2R, "longitude": (lon2 / D2R % 360).transpose()}
+    )
     gc["distance"] = dist_r / D2R
     gc["bearing"] = brng_r / D2R
     return gc
@@ -353,7 +365,7 @@ def dist_and_bearing(lat1, lat2, lon1, lon2):
     a = np.sin(latdif_r / 2) * np.sin(latdif_r / 2) + np.cos(lat1_r) * np.cos(
         lat2_r
     ) * np.sin(londif_r / 2) * np.sin(londif_r / 2)
-    a = a.clip(0., 1.) # to avoid warning for a=1.0000001,
+    a = a.clip(0.0, 1.0)  # to avoid warning for a=1.0000001,
     degdist = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)) / D2R
 
     y = np.sin(londif_r) * np.cos(lat2_r)
@@ -374,6 +386,7 @@ def geographic_mask(lat0, lon0, dists, bearings):
     Returns:
         array: points not blocked by land
     """
+
     def circ_closed_range(i1, i2, n=360):
         if abs(i2 - i1) <= n / 2:
             if i2 > i1:
@@ -389,16 +402,16 @@ def geographic_mask(lat0, lon0, dists, bearings):
         return indices
 
     def update_dmax(dmax, dists, ibearings):
-        for idist in range(len(dists)-1):
+        for idist in range(len(dists) - 1):
             d1 = dists[idist]
-            d2 = dists[idist+1]
+            d2 = dists[idist + 1]
             i1 = ibearings[idist]
-            i2 = ibearings[idist+1]
+            i2 = ibearings[idist + 1]
             for i in circ_closed_range(i1, i2):
                 if i2 == i1:
                     d = d1
                 else:
-                    d = d1 + (d2-d1)/(i2-i1)*(i-i1)
+                    d = d1 + (d2 - d1) / (i2 - i1) * (i - i1)
                 dmax[i] = min(dmax[i], d)
         return dmax
 
@@ -418,7 +431,7 @@ def geographic_mask(lat0, lon0, dists, bearings):
 
 
 def get_groupers(groupers):
-    """ Get default groupers if the input is None
+    """Get default groupers if the input is None
 
     Args:
         groupers (sequence of str or None): groupers for calc and plot functions

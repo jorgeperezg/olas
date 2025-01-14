@@ -1,38 +1,35 @@
-[tool.poetry]
+[project]
 name = "olas"
-version = "0.2.0"
+version = "0.3.0"
 description = "Library with wave tools like ESTELA"
 authors = [
-    "jorge.perez <j.perez@metocean.co.nz>"
+    { name = "Jorge Perez", email = "j.perez@metocean.co.nz" },
 ]
 license = "MIT"
 readme = "README.md"
+requires-python = ">=3.8,<3.14"
 homepage = "https://github.com/jorgeperezg/olas"
 repository = "https://github.com/jorgeperezg/olas"
 documentation = "https://jorgeperezg.github.io/olas/estela.html"
 keywords = ["waves", "xarray", "ESTELA"]
 
-[tool.poetry.dependencies]
-python = "^3.8,<3.12"
-xarray = "^2023.1.0"
-dask = {extras = ["complete"], version = "^2023.3.1"}
-scipy = "^1.10.1"
-numpy = "^1.24.2"
-matplotlib = "^3.7.1"
-netcdf4 = "^1.6.3"
-cartopy = "^0.21.1"
+dependencies = [
+    "xarray >=2023.1.0",
+    "dask[dataframe,diagnostics,distributed] >=2023.3.1",
+    "scipy >=1.10.1",
+    "numpy >=1.24.2",
+    "matplotlib >=3.7.1",
+    "netcdf4 >=1.6.3",
+    "cartopy >=0.21.1",
+]
 
-[tool.poetry.dev-dependencies]
-pytest = "^7.2.2"
-ipython = "^8.11.0"
-portray = "^1.8.0"
+[project.optional-dependencies]
+dev = [
+    "pytest >=7.2.2",
+    "ipython >=8.11.0",
+    "mkdocs-material >=9",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.portray.mkdocs.theme]
-favicon = "art/logo_small.png"
-logo = "art/logo_small.png"
-name = "material"
-palette = {primary = "indigo", accent = "pink"}
+requires = ["hatchling"]
+build-backend = "hatchling.build"

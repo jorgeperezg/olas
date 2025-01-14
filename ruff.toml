@@ -1,0 +1,15 @@
+target-version = "py38"
+lint.select = [
+    "F",  # pyflakes
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "I",  # isort
+    "UP",  # pyupgrade
+    "B",  # flake8-bugbear
+    "T10",  # flake8-debugger
+    "Q",  # flake8-quotes
+]
+lint.ignore = [
+    "E501",  # line too long
+    "B008",  # do not perform function calls in argument defaults
+]

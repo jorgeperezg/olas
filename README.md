@@ -11,18 +11,16 @@ Library with wave tools. At the moment it only includes a prototype of ESTELA.
 
 Documentation: <https://jorgeperezg.github.io/olas>
 
-The documentation is generated with `poetry run portray on_github_pages`
-
 ## Installation
 
-Installation with conda is straightforward
-```
-conda install -c conda-forge olas
-```
-
-Installation with pip requires cartopy (it can be installed with `conda install -c conda-forge cartopy`):
+Installation with is straightforward
 ```
 pip install olas
+```
+
+It can also be installed from conda-forge:
+```
+conda install -c conda-forge olas
 ```
 
 ## Basic usage
