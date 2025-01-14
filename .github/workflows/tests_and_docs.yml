@@ -36,9 +36,9 @@ jobs:
         run: python -m pytest --durations=0
 
       - name: Build but not deploy documentation
-        if:  github.ref != 'refs/heads/main' && matrix.python-version == '3.13'
+        if:  github.ref != 'refs/heads/master' && matrix.python-version == '3.13'
         run: python -m mkdocs build
 
       - name: Deploy documentation in github pages
-        if:  github.ref == 'refs/heads/main' && matrix.python-version == '3.13'
+        if:  github.ref == 'refs/heads/master' && matrix.python-version == '3.13'
         run: python -m mkdocs gh-deploy --force --clean
