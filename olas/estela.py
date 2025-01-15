@@ -20,7 +20,7 @@ from glob import glob
 import numpy as np
 import xarray as xr
 from cartopy import crs as ccrs
-from cartopy.io import shapereader as shpreader
+from cartopy.io import shapereader
 from dask.diagnostics import ProgressBar
 from matplotlib import pyplot as plt
 from scipy import special
@@ -421,11 +421,11 @@ def geographic_mask(lat0, lon0, dists, bearings):
         return dmax
 
     dmax = 179.99 * np.ones(360)
-    shpfilename = shpreader.natural_earth(
+    shpfilename = shapereader.natural_earth(
         resolution="110m", category="physical", name="coastline"
     )
-    # shpfilename = shpreader.gshhs(scale='c', level=1)
-    coastlines = shpreader.Reader(shpfilename).records()
+    # shpfilename = shapereader.gshhs(scale='c', level=1)
+    coastlines = shapereader.Reader(shpfilename).records()
     for c in coastlines:
         lonland, latland = map(np.array, zip(*c.geometry.coords))
         distland, bearingland = dist_and_bearing(lat0, latland, lon0, lonland)
