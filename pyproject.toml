@@ -7,12 +7,7 @@ authors = [
 ]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.9,<3.14"
-homepage = "https://github.com/jorgeperezg/olas"
-repository = "https://github.com/jorgeperezg/olas"
-documentation = "https://jorgeperezg.github.io/olas/estela.html"
 keywords = ["waves", "xarray", "ESTELA"]
-
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
@@ -23,7 +18,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
 ]
-
+requires-python = ">=3.9,<3.14"
 dependencies = [
     "xarray >=2023.1.0",
     "dask[dataframe,diagnostics,distributed] >=2023.3.1",
@@ -43,6 +38,11 @@ dev = [
 
 [project.scripts]
 estela = "olas.estela:parser"
+
+[project.urls]
+homepage = "https://github.com/jorgeperezg/olas"
+repository = "https://github.com/jorgeperezg/olas"
+documentation = "https://jorgeperezg.github.io/olas"
 
 [build-system]
 requires = ["hatchling"]
