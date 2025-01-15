@@ -7,7 +7,7 @@ authors = [
 ]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.8,<3.14"
+requires-python = ">=3.9,<3.14"
 homepage = "https://github.com/jorgeperezg/olas"
 repository = "https://github.com/jorgeperezg/olas"
 documentation = "https://jorgeperezg.github.io/olas/estela.html"
