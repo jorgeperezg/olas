@@ -36,10 +36,10 @@ def parser():
     parser.add_argument("datafiles", type=str, help="Files with wave data")
     parser.add_argument("lat0", type=float, help="Latitude of the target point")
     parser.add_argument("lon0", type=float, help="Longitude of the target point")
-    parser.add_argument("--hs", type=str, default="hs", help="Significant wave height fieldnames")
-    parser.add_argument("--tp", type=str, default="tp", help="Peak period fieldnames")
-    parser.add_argument("--dp", type=str, default="dp", help="Wave direction fieldnames")
-    parser.add_argument("--si", default=20, help="Directional spread fieldnames")
+    parser.add_argument("--hs", type=str, default="phs.|hs.|hs", help="Significant wave height mapping to file variables")
+    parser.add_argument("--tp", type=str, default="ptp.|tp.|tp", help="Peak period mapping to file variables")
+    parser.add_argument("--dp", type=str, default="pdir.|th.|dp", help="Wave direction mapping to file variables")
+    parser.add_argument("--si", default=20, help="Directional spread value or mapping to file variables")
     parser.add_argument("-g", "--groupers", nargs="*", default=None, help="groupers for results")
     parser.add_argument("-n", "--nblocks", type=int, default=1, help="Number of blocks for file calculations")
     parser.add_argument("-p", "--proj", type=str, default=None, help="projection")
@@ -50,17 +50,17 @@ def parser():
     plot(estelas, groupers=args.groupers, proj=args.proj, outdir=args.outdir)
     plt.show()
 
-def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si=20, groupers=None, nblocks=1):
+def calc(datafiles, lat0, lon0, hs="phs.|hs.|hs", tp="ptp.|tp.|tp", dp="pdir.|th.|dp", si=20, groupers=None, nblocks=1):
     """Calculate ESTELA dataset for a target point.
 
     Args:
         datafiles (str or sequence of str): Regular expression or list of data files.
         lat0 (float): Latitude of target point.
         lon0 (float): Longitude of target point.
-        hs (str or sequence of str): regex/list of hs field names in datafiles.
-        tp (str or sequence of str): regex/list of tp field names in datafiles.
-        dp (str or sequence of str): regex/list of dp field names in datafiles.
-        si (str or sequence of str or float): Value or regex/list of directional spread field names.
+        hs (str or sequence of str): regex/list of hs field name(s) in datafiles.
+        tp (str or sequence of str): regex/list of tp field name(s) in datafiles.
+        dp (str or sequence of str): regex/list of dp field name(s) in datafiles.
+        si (str or sequence of str or float): Value or regex/list of directional spread field name(s).
         groupers (sequence of str, optional): Values used to group the results.
         nblocks (int, optional): Number of blocks. More blocks need less memory but calculations are slower.
 
@@ -108,29 +108,38 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.", tp="ptp.|tp.", dp="pdir.|th.", si
             dsf_blocks = [dsf]
         logging.info(f"File {ifile + 1}/{nfiles}: {file}")
 
-        spec_info = dict(hs=hs, tp=tp, dp=dp, si=si)
-        for k, value in spec_info.items():
-            if isinstance(value, str):  # expand regular expressions
-                spec_info[k] = sorted(v for v in dsf.variables if re.fullmatch(value, v))
-        npart = len(spec_info["hs"])
-        num_si = isinstance(spec_info["si"], (int, float))
-        logging.info(f"spec_info: {spec_info}")
+        var_mapping = dict(hs=hs, tp=tp, dp=dp, si=si)
+        # expand var_mapping regular expressions to variables in the dataset
+        for k, value in var_mapping.items():
+            if isinstance(value, str):
+                # find a valid regex
+                for regex in value.split("|"):
+                    fieldnames = sorted(v for v in dsf.variables if re.fullmatch(regex, v))
+                    if fieldnames:
+                        var_mapping[k] = fieldnames
+                        break
+                if not fieldnames:
+                    raise ValueError(f"No regex matches for {k}={value} in the file variables: {list(dsf.variables)}")
+
+        npart = len(var_mapping["hs"])
+        num_si = isinstance(var_mapping["si"], (int, float))
+        logging.info(f"var_mapping: {var_mapping}")
 
         for dsi in dsf_blocks:
             block_results = xr.Dataset()
             for ipart in range(npart):
-                hs_data = dsi[spec_info["hs"][ipart]]
-                tp_data = dsi[spec_info["tp"][ipart]]
-                dp_data = dsi[spec_info["dp"][ipart]]
+                hs_data = dsi[var_mapping["hs"][ipart]]
+                tp_data = dsi[var_mapping["tp"][ipart]]
+                dp_data = dsi[var_mapping["dp"][ipart]]
 
                 coef_dissipation = np.exp(k_dissipation * (tp_data**-3.5))
 
                 if si_calculations:
                     if num_si:  # don't repeat calculations
-                        si_data = spec_info["si"]
+                        si_data = var_mapping["si"]
                         si_calculations = False
                     else:
-                        si_data = dsi[spec_info["si"][ipart]].clip(15.0, 45.0)
+                        si_data = dsi[var_mapping["si"][ipart]].clip(15.0, 45.0)
                         # TODO find better solution to avoid invalid A2 values
 
                     s = (2 / (si_data * np.pi / 180) ** 2) - 1
