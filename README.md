@@ -10,18 +10,20 @@ Documentation: <https://jorgeperezg.github.io/olas>
 
 ## Installation
 
-Installation with pip (or similar tools) is straightforward:
+Installation from [PyPI](https://pypi.org/project/olas/) with pip (or similar tools) is straightforward:
 ```
 pip install olas
 ```
 
-It can also be installed with conda from conda-forge:
+It can also be installed with conda from [conda-forge](https://anaconda.org/conda-forge/olas) ([feedstock](https://github.com/conda-forge/olas-feedstock)): 
 ```
 conda install -c conda-forge olas
 ```
 
 ## Basic usage
-Calculate and plot ESTELA maps from the sample netcdf files.
+Calculate and plot ESTELA maps for a location near Santander using the sample netcdf files.
+
+NOTE: a longer period should to be considered to get meaningful results.
 
 Using the command line interface:
 ```sh
@@ -33,6 +35,6 @@ Or python functions:
 ```python
 from olas.estela import calc, plot
 estelas = calc("./tests/sample_files/test20180101T??.nc", 44, -4)
-plot(estelas, outdir=".")
-plot(estelas, outdir=".")  # gainloss=True for plotting GL maps
+plot(estelas, outdir=".")  # for plotting base maps
+plot(estelas, gainloss=True, outdir=".")  # for plotting GL maps
 ```
