@@ -1,6 +1,6 @@
 [project]
 name = "olas"
-version = "0.3.1"
+version = "0.3.2"
 description = "Library with wave tools like ESTELA"
 authors = [
     { name = "Jorge Perez", email = "j.perez@metocean.co.nz" },
