@@ -84,7 +84,7 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.|hs", tp="ptp.|tp.|tp", dp="pdir.|th
 
     logging.info("geographical constants and initialization")
     dsf = xr.open_mfdataset(flist[0])
-    dists, bearings = dist_and_bearing(lat0, dsf.latitude, lon0, dsf.longitude)
+    dists, bearings = dist_and_bearing(lat0, dsf["latitude"], lon0, dsf["longitude"])
     vland = geographic_mask(lat0, lon0, dists, bearings)
     dist_m = dists * 6371000 * D2R
     va = 1.4 * 10**-5
@@ -205,8 +205,8 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
     """
     if figsize is None:
         figsize = [25, 10]
-    lat0 = float(estelas.lat0)
-    lon0 = float(estelas.lon0)
+    lat0 = float(estelas["lat0"])
+    lon0 = float(estelas["lon0"])
     gc = great_circles(lat0, lon0, ngc=16)
     c1day = dict(levels=np.linspace(1, 30, 30), colors="grey", linewidths=0.5)
     c3day = dict(levels=np.linspace(3, 30, 10), colors="black", linewidths=1.0)
@@ -229,8 +229,8 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
         else:
             time = [grouper]
 
-        ds = estelas.sel(time=[t for t in time if t in estelas.time])
-        aux = [ds.isel(time=0).assign(time=t)["F"] * np.nan for t in time if t not in estelas.time]
+        ds = estelas.sel(time=[t for t in time if t in estelas["time"]])
+        aux = [ds.isel(time=0).assign(time=t)["F"] * np.nan for t in time if t not in estelas["time"]]
         F = xr.concat([ds["F"]] + aux, dim="time").sel(time=time)
         F = F.dropna("longitude", how="all").dropna("latitude", how="all")
 
@@ -239,8 +239,8 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
             ngc = 360
             polar_grid = great_circles(lat0, lon0, ngc)
             polarF = F.interp(polar_grid)
-            dist_midpoints = (polarF.distance.values[1:] + polarF.distance.values[:-1]) / 2
-            cosd = np.cos(polarF.distance * D2R)
+            dist_midpoints = (polarF["distance"].values[1:] + polarF["distance"].values[:-1]) / 2
+            cosd = np.cos(polarF["distance"] * D2R)
             S = 4 * np.pi * 6371**2 / ngc * abs(cosd.diff("distance")) / 2  # km**2
             incF = (polarF.diff("distance") / S).assign_coords(distance=dist_midpoints)
             F *= np.nan  # empty pcolors, using contourf
@@ -280,8 +280,8 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
                 Fi = incF.sel(time=time[iax])
                 clim = float(abs(Fi).quantile(0.95))
                 p = ax.contourf(
-                    incF.longitude,
-                    incF.latitude,
+                    incF["longitude"],
+                    incF["latitude"],
                     Fi.clip(-clim, clim),
                     transform=ccrs.PlateCarree(),
                     levels=15,
