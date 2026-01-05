@@ -43,12 +43,13 @@ def parser():
     parser.add_argument("--si", default=20, help="Directional spread value or mapping to file variables")
     parser.add_argument("-g", "--groupers", nargs="*", default=None, help="Groupers for results")
     parser.add_argument("-n", "--nblocks", type=int, default=1, help="Number of blocks for file calculations")
+    parser.add_argument("--gainloss", action="store_true", default=False, help="Gain/loss plots")
     parser.add_argument("-p", "--proj", type=str, default=None, help="Projection")
     parser.add_argument("-o", "--outdir", type=str, default=None, help="Output directory")
     args = parser.parse_args()
 
     estelas = calc(args.datafiles, args.lat0, args.lon0, args.hs, args.tp, args.dp, args.si, args.groupers, args.nblocks)
-    plot(estelas, groupers=args.groupers, proj=args.proj, outdir=args.outdir)
+    plot(estelas, groupers=args.groupers, gainloss=args.gainloss, proj=args.proj, outdir=args.outdir)
     plt.show()
 
 
