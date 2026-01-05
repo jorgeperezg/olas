@@ -10,6 +10,9 @@ resolution-markers = [
     "(python_full_version == '3.10.*' and platform_machine != 'ARM64') or (python_full_version == '3.10.*' and sys_platform != 'win32')",
     "python_full_version < '3.10'",
 ]
+required-markers = [
+    "sys_platform == 'linux'",
+]
 
 [[package]]
 name = "asttokens"
