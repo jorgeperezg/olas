@@ -206,8 +206,9 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
     """
     if figsize is None:
         figsize = [25, 10]
-    lat0 = float(estelas["lat0"])
-    lon0 = float(estelas["lon0"])
+    # TODO consider different approach after adding support for multi-site estelas.
+    lat0 = float(estelas["lat0"].item())
+    lon0 = float(estelas["lon0"].item())
     gc = great_circles(lat0, lon0, ngc=16)
     c1day = dict(levels=np.linspace(1, 30, 30), colors="grey", linewidths=0.5)
     c3day = dict(levels=np.linspace(3, 30, 10), colors="black", linewidths=1.0)
