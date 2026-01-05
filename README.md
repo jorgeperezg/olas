@@ -15,7 +15,7 @@ Installation from [PyPI](https://pypi.org/project/olas/) with pip (or similar to
 pip install olas
 ```
 
-It can also be installed with conda from [conda-forge](https://anaconda.org/conda-forge/olas) ([feedstock](https://github.com/conda-forge/olas-feedstock)): 
+It can also be installed with conda from [conda-forge](https://anaconda.org/conda-forge/olas) ([feedstock](https://github.com/conda-forge/olas-feedstock)):
 ```
 conda install -c conda-forge olas
 ```

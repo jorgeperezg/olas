@@ -1,4 +1,5 @@
 target-version = "py38"
+line-length = 125
 lint.select = [
     "F",  # pyflakes
     "E",  # pycodestyle errors

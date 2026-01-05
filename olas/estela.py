@@ -30,6 +30,7 @@ D2R = np.pi / 180.0
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+
 def parser():
     """Command-line entry point"""
     parser = argparse.ArgumentParser(description="Calculate estelas")
@@ -40,15 +41,16 @@ def parser():
     parser.add_argument("--tp", type=str, default="ptp.|tp.|tp", help="Peak period mapping to file variables")
     parser.add_argument("--dp", type=str, default="pdir.|th.|dp", help="Wave direction mapping to file variables")
     parser.add_argument("--si", default=20, help="Directional spread value or mapping to file variables")
-    parser.add_argument("-g", "--groupers", nargs="*", default=None, help="groupers for results")
+    parser.add_argument("-g", "--groupers", nargs="*", default=None, help="Groupers for results")
     parser.add_argument("-n", "--nblocks", type=int, default=1, help="Number of blocks for file calculations")
-    parser.add_argument("-p", "--proj", type=str, default=None, help="projection")
-    parser.add_argument("-o", "--outdir", type=str, default=None, help="output directory")
+    parser.add_argument("-p", "--proj", type=str, default=None, help="Projection")
+    parser.add_argument("-o", "--outdir", type=str, default=None, help="Output directory")
     args = parser.parse_args()
 
     estelas = calc(args.datafiles, args.lat0, args.lon0, args.hs, args.tp, args.dp, args.si, args.groupers, args.nblocks)
     plot(estelas, groupers=args.groupers, proj=args.proj, outdir=args.outdir)
     plt.show()
+
 
 def calc(datafiles, lat0, lon0, hs="phs.|hs.|hs", tp="ptp.|tp.|tp", dp="pdir.|th.|dp", si=20, groupers=None, nblocks=1):
     """Calculate ESTELA dataset for a target point.
@@ -149,9 +151,7 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.|hs", tp="ptp.|tp.|tp", dp="pdir.|th
                     # TODO review coef_spread units and compare with wavespectra
 
                 th2 = 0.5 * dp_data * D2R
-                coef_direction = abs(np.cos(th2) * th1_cos + np.sin(th2) * th1_sin) ** (
-                    2.0 * s
-                )
+                coef_direction = abs(np.cos(th2) * th1_cos + np.sin(th2) * th1_sin) ** (2.0 * s)
 
                 Spart_th = hs_data**2 / 16 * coef_dissipation * coef_direction * coef_spread
                 block_results["S_th"] = block_results.get("S_th", 0) + (Spart_th)
@@ -162,23 +162,19 @@ def calc(datafiles, lat0, lon0, hs="phs.|hs.|hs", tp="ptp.|tp.|tp", dp="pdir.|th
 
             for grouper in groupers:
                 if grouper == "ALL":
-                    grouped_results["ALL"] = grouped_results.get(
-                        "ALL", 0
-                    ) + block_results.sum("time").assign(ntime=len(dsi.time))
+                    grouped_results["ALL"] = grouped_results.get("ALL", 0) + block_results.sum("time").assign(
+                        ntime=len(dsi.time)
+                    )
                 else:
                     for k, v in block_results.groupby(grouper):
                         kstr = f"m{k:02g}" if grouper == "time.month" else str(k)
-                        grouped_results[kstr] = grouped_results.get(kstr, 0) + v.sum(
-                            "time"
-                        ).assign(ntime=len(v.time))
+                        grouped_results[kstr] = grouped_results.get(kstr, 0) + v.sum("time").assign(ntime=len(v.time))
 
     logging.info("Creating estelas dataset")
     time = xr.Variable(data=sorted(grouped_results), dims="time")
     estelas_aux = xr.concat([grouped_results[k] for k in time.values], dim=time)
     # TODO Te instead of Tp.  tp_te_ratio = 1.1 ?
-    Fdeg = (
-        1.025 * 9.81 * estelas_aux["Stp_th"] / estelas_aux["ntime"] * 9.81 / 4 / np.pi
-    )
+    Fdeg = 1.025 * 9.81 * estelas_aux["Stp_th"] / estelas_aux["ntime"] * 9.81 / 4 / np.pi
     cg_mps = (estelas_aux["Stp_th"] / estelas_aux["S_th"]) * 9.81 / 4 / np.pi
     estelas_dict = {
         "F": 360 * Fdeg,
@@ -234,11 +230,7 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
             time = [grouper]
 
         ds = estelas.sel(time=[t for t in time if t in estelas.time])
-        aux = [
-            ds.isel(time=0).assign(time=t)["F"] * np.nan
-            for t in time
-            if t not in estelas.time
-        ]
+        aux = [ds.isel(time=0).assign(time=t)["F"] * np.nan for t in time if t not in estelas.time]
         F = xr.concat([ds["F"]] + aux, dim="time").sel(time=time)
         F = F.dropna("longitude", how="all").dropna("latitude", how="all")
 
@@ -303,7 +295,7 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
                     transform=ccrs.PlateCarree(),
                     linestyles="solid",
                     add_labels=False,
-                    zorder=2*(1+ic),
+                    zorder=2 * (1 + ic),
                     **c_args,
                 )
             if len(time) == 1:
@@ -351,9 +343,7 @@ def great_circles(lat1, lon1, ngc=16):
 
     lat2 = np.arcsin(sin_lat1 * cos_dR + cos_lat1 * sin_dR * np.cos(brng_r))
     lon2 = lon1_r + np.arctan2(np.sin(brng_r) * sin_dR * cos_lat1, cos_dR - sin_lat1 * np.sin(lat2))
-    gc = xr.Dataset(
-        {"latitude": lat2 / D2R, "longitude": (lon2 / D2R % 360).transpose()}
-    )
+    gc = xr.Dataset({"latitude": lat2 / D2R, "longitude": (lon2 / D2R % 360).transpose()})
     gc["distance"] = dist_r / D2R
     gc["bearing"] = brng_r / D2R
     return gc
@@ -376,9 +366,9 @@ def dist_and_bearing(lat1, lat2, lon1, lon2):
     latdif_r = (lat2 - lat1) * D2R
     londif_r = (lon2 - lon1) * D2R
 
-    a = np.sin(latdif_r / 2) * np.sin(latdif_r / 2) + np.cos(lat1_r) * np.cos(
-        lat2_r
-    ) * np.sin(londif_r / 2) * np.sin(londif_r / 2)
+    a = np.sin(latdif_r / 2) * np.sin(latdif_r / 2) + np.cos(lat1_r) * np.cos(lat2_r) * np.sin(londif_r / 2) * np.sin(
+        londif_r / 2
+    )
     a = a.clip(0.0, 1.0)  # to avoid warning for a=1.0000001,
     degdist = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a)) / D2R
 
@@ -430,9 +420,7 @@ def geographic_mask(lat0, lon0, dists, bearings):
         return dmax
 
     dmax = 179.99 * np.ones(360)
-    shpfilename = shapereader.natural_earth(
-        resolution="110m", category="physical", name="coastline"
-    )
+    shpfilename = shapereader.natural_earth(resolution="110m", category="physical", name="coastline")
     # shpfilename = shapereader.gshhs(scale='c', level=1)
     coastlines = shapereader.Reader(shpfilename).records()
     for c in coastlines:
