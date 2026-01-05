@@ -1,0 +1,16 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0  # this is optional, use `prek autoupdate or pre-commit autoupdate` to get the latest rev!
+    hooks:
+    -   id: check-toml
+    -   id: check-yaml
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+    -   id: mixed-line-ending
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.10
+    hooks:
+    -   id: ruff-check
+        args: [ --fix, --show-fixes ]
+    -   id: ruff-format
