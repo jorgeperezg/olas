@@ -244,7 +244,7 @@ def plot(estelas, groupers=None, gainloss=False, proj=None, set_global=False, cm
             dist_midpoints = (polarF["distance"].values[1:] + polarF["distance"].values[:-1]) / 2
             cosd = np.cos(polarF["distance"] * D2R)
             S = 4 * np.pi * 6371**2 / ngc * abs(cosd.diff("distance")) / 2  # km**2
-            incF = (polarF.diff("distance") / S).assign_coords(distance=dist_midpoints)
+            incF = (-polarF.diff("distance") / S).assign_coords(distance=dist_midpoints)
             F *= np.nan  # empty pcolors, using contourf
             F.attrs["standard_name"] = "${\\Delta}F$"
             F.attrs["units"] = "$\\frac{kW}{m\\circ{km^2}}$"  # colorbar defined for pcolors
